@@ -9,7 +9,7 @@
 
 class MyGame : public ASGE::OGLGame
 {
-  public:
+ public:
   ~MyGame() override = default;
 
   bool init() override;
