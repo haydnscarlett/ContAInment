@@ -28,18 +28,13 @@ bool MyGame::init()
   setupGame();
   setupPlayer();
 
-
   inputs->use_threads = false;
 
-  key_callback_id = inputs->addCallbackFnc(
-      ASGE::E_KEY, &MyGame::keyHandler, this);
+  key_callback_id = inputs->addCallbackFnc(ASGE::E_KEY, &MyGame::keyHandler, this);
   toggleFPS();
-
-
 
   return true;
 }
-
 
 void MyGame::setupGame()
 {
@@ -47,10 +42,8 @@ void MyGame::setupGame()
   splash_screen->loadTexture("/data/Splash.png");
   splash_screen->width((GAME_WIDTH * 0.5f));
   splash_screen->height((GAME_HEIGHT * 0.5));
-  splash_screen->xPos((GAME_WIDTH * 0.5f) -
-                      (splash_screen->width() * 0.5f));
-  splash_screen->yPos((GAME_HEIGHT * 0.5f) -
-                      (splash_screen->height() * 0.5f));
+  splash_screen->xPos((GAME_WIDTH * 0.5f) - (splash_screen->width() * 0.5f));
+  splash_screen->yPos((GAME_HEIGHT * 0.5f) - (splash_screen->height() * 0.5f));
   main_menu = renderer->createRawSprite();
   main_menu->loadTexture("/data/MainMenu.png");
   main_menu->width(GAME_WIDTH);
@@ -58,17 +51,14 @@ void MyGame::setupGame()
   main_menu->xPos(0.0f);
   main_menu->yPos(0.0f);
 
-
   main_menu_icon = renderer->createRawSprite();
   main_menu_icon->loadTexture("/data/arrow.png");
   main_menu_icon->width(50);
   main_menu_icon->height(50);
 
-
   game_state = SPLASH_SCREEN;
   main_menu_option = NEW_GAME;
 }
-
 
 void MyGame::setupPlayer()
 {
@@ -86,7 +76,7 @@ void MyGame::setupPlayer()
   {
     new_sprites[i] = renderer->createRawSprite();
     std::string texture = "/data/ScientistSprites/tile0";
-    switch(i)
+    switch (i)
     {
       case 0:
         texture.append("00.png");
@@ -141,13 +131,13 @@ void MyGame::setupPlayer()
     new_sprites[i]->height(GRID_SIZE);
     new_sprites[i]->width(GRID_SIZE);
     new_sprites[i]->xPos(GAME_WIDTH / 2 - GRID_SIZE / 2);
-    new_sprites[i]->yPos(GAME_HEIGHT / 2  -GRID_SIZE / 2);
+    new_sprites[i]->yPos(GAME_HEIGHT / 2 - GRID_SIZE / 2);
   }
   player_one.setPlayerSprites(new_sprites);
-GameObject new_player_gameobject;
-new_player_gameobject.setMySprite(new_sprites[0]);
-Point2D new_location;
-new_location.x = new_sprites[0]->xPos();
+  GameObject new_player_gameobject;
+  new_player_gameobject.setMySprite(new_sprites[0]);
+  Point2D new_location;
+  new_location.x = new_sprites[0]->xPos();
   new_location.y = new_sprites[0]->yPos();
   new_player_gameobject.setMyLocation(new_location);
   player_one.setPlayerGameobject(new_player_gameobject);
@@ -156,9 +146,9 @@ new_location.x = new_sprites[0]->xPos();
 /**
 *   @brief   Processes any key inputs
 *   @details This function is added as a callback to handle the game's
-			 keyboard input. For this game, calls to this function
-			 are thread safe, so you may alter the game's state as you
-			 see fit.
+                         keyboard input. For this game, calls to this function
+                         are thread safe, so you may alter the game's state as you
+                         see fit.
 *   @param   data The event data relating to key input.
 *   @see     KeyEvent
 *   @return  void
@@ -167,10 +157,7 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
 {
   auto key = static_cast<const ASGE::KeyEvent*>(data.get());
 
-
-
-  if (key->key == ASGE::KEYS::KEY_ENTER &&
-      key->action == ASGE::KEYS::KEY_PRESSED &&
+  if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED &&
       key->mods == 0x0004)
   {
     if (renderer->getWindowMode() == ASGE::Renderer::WindowMode::WINDOWED)
@@ -182,14 +169,14 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
       renderer->setWindowedMode(ASGE::Renderer::WindowMode::WINDOWED);
     }
   }
-  else if(game_state == MAIN_MENU)
+  else if (game_state == MAIN_MENU)
   {
     if (key->key == ASGE::KEYS::KEY_ESCAPE)
     {
       signalExit();
     }
-    else if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-            && key->action == ASGE::KEYS::KEY_PRESSED)
+    else if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+             key->action == ASGE::KEYS::KEY_PRESSED)
     {
       main_menu_option--;
       if (main_menu_option < NEW_GAME)
@@ -197,8 +184,8 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
         main_menu_option = EXIT_GAME;
       }
     }
-    else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-            && key->action == ASGE::KEYS::KEY_PRESSED)
+    else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+             key->action == ASGE::KEYS::KEY_PRESSED)
     {
       main_menu_option++;
       if (main_menu_option > EXIT_GAME)
@@ -206,10 +193,9 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
         main_menu_option = NEW_GAME;
       }
     }
-    else if(key->key == ASGE::KEYS::KEY_ENTER
-            && key->action == ASGE::KEYS::KEY_PRESSED)
+    else if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED)
     {
-      switch(main_menu_option)
+      switch (main_menu_option)
       {
         case NEW_GAME:
           game_state = IN_GAME;
@@ -220,34 +206,32 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
         case EXIT_GAME:
           signalExit();
           break;
-
       }
-
     }
   }
 
-  else if(game_state == IN_GAME)
+  else if (game_state == IN_GAME)
   {
-    if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-       && key->action == ASGE::KEYS::KEY_REPEATED)
+    if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+        key->action == ASGE::KEYS::KEY_REPEATED)
     {
       player_one.setMoving(true);
       player_one.setDirection(NORTH);
     }
-    else if((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT)
-            && key->action == ASGE::KEYS::KEY_REPEATED)
+    else if ((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT) &&
+             key->action == ASGE::KEYS::KEY_REPEATED)
     {
       player_one.setMoving(true);
       player_one.setDirection(WEST);
     }
-    else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-            && key->action == ASGE::KEYS::KEY_REPEATED)
+    else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+             key->action == ASGE::KEYS::KEY_REPEATED)
     {
       player_one.setMoving(true);
       player_one.setDirection(SOUTH);
     }
-    else if((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT)
-            && key->action == ASGE::KEYS::KEY_REPEATED)
+    else if ((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT) &&
+             key->action == ASGE::KEYS::KEY_REPEATED)
     {
       player_one.setMoving(true);
       player_one.setDirection(EAST);
@@ -258,27 +242,21 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
     }
   }
 
-  else if(game_state == INVENTORY)
+  else if (game_state == INVENTORY)
   {
-
   }
 
-
-  else if(game_state == PAUSE)
+  else if (game_state == PAUSE)
   {
-
   }
 
-  else if(game_state == GAME_OVER)
+  else if (game_state == GAME_OVER)
   {
     if (key->key == ASGE::KEYS::KEY_ESCAPE)
     {
       signalExit();
     }
   }
-
-
-
 }
 
 // cppcheck-suppress unusedFunction
@@ -287,17 +265,12 @@ void MyGame::update(const ASGE::GameTime& game_time)
   auto dt_sec = game_time.delta_time.count() / 1000.0f;
   if (game_state == SPLASH_SCREEN)
   {
-
     splash_screen->width(splash_screen->width() +
-                         ((GAME_WIDTH * 0.5f) * 0.3f) *
-                         static_cast<float>(dt_sec));
+                         ((GAME_WIDTH * 0.5f) * 0.3f) * static_cast<float>(dt_sec));
     splash_screen->height(splash_screen->height() +
-                          ((GAME_HEIGHT * 0.5f) * 0.3f)	*
-                          static_cast<float>(dt_sec));
-    splash_screen->xPos((GAME_WIDTH * 0.5f) -
-                        (splash_screen->width() * 0.5f));
-    splash_screen->yPos((GAME_HEIGHT * 0.5f) -
-                        (splash_screen->height() * 0.5f));
+                          ((GAME_HEIGHT * 0.5f) * 0.3f) * static_cast<float>(dt_sec));
+    splash_screen->xPos((GAME_WIDTH * 0.5f) - (splash_screen->width() * 0.5f));
+    splash_screen->yPos((GAME_HEIGHT * 0.5f) - (splash_screen->height() * 0.5f));
     if (splash_screen->xPos() < 0.f)
     {
       game_state = MAIN_MENU;
@@ -308,14 +281,13 @@ void MyGame::update(const ASGE::GameTime& game_time)
     animation_counter += dt_sec;
     if (player_one.isMoving())
     {
-      if(animation_counter > 0.15)
+      if (animation_counter > 0.15)
       {
         animation_counter = 0.0;
-        switch(player_one.getDirection())
+        switch (player_one.getDirection())
         {
           case SOUTH:
-            if (player_one.getSpriteIndex() + 1 > 3 ||
-                player_one.getSpriteIndex() + 1 < 0)
+            if (player_one.getSpriteIndex() + 1 > 3 || player_one.getSpriteIndex() + 1 < 0)
             {
               player_one.setSpriteIndex(0);
             }
@@ -325,8 +297,7 @@ void MyGame::update(const ASGE::GameTime& game_time)
             }
             break;
           case EAST:
-            if (player_one.getSpriteIndex() + 1 > 11 ||
-                player_one.getSpriteIndex() + 1 < 8)
+            if (player_one.getSpriteIndex() + 1 > 11 || player_one.getSpriteIndex() + 1 < 8)
             {
               player_one.setSpriteIndex(8);
             }
@@ -336,8 +307,7 @@ void MyGame::update(const ASGE::GameTime& game_time)
             }
             break;
           case NORTH:
-            if (player_one.getSpriteIndex() + 1 > 15 ||
-                player_one.getSpriteIndex() + 1 < 12)
+            if (player_one.getSpriteIndex() + 1 > 15 || player_one.getSpriteIndex() + 1 < 12)
             {
               player_one.setSpriteIndex(12);
             }
@@ -347,8 +317,7 @@ void MyGame::update(const ASGE::GameTime& game_time)
             }
             break;
           case WEST:
-            if (player_one.getSpriteIndex() + 1 > 7||
-                player_one.getSpriteIndex() + 1 < 4)
+            if (player_one.getSpriteIndex() + 1 > 7 || player_one.getSpriteIndex() + 1 < 4)
             {
               player_one.setSpriteIndex(4);
             }
@@ -362,7 +331,6 @@ void MyGame::update(const ASGE::GameTime& game_time)
         player.setMySprite(player_one.getPlayerSprite(player_one.getSpriteIndex()));
         player_one.setPlayerGameobject(player);
       }
-
     }
   }
   return;
@@ -371,8 +339,7 @@ void MyGame::update(const ASGE::GameTime& game_time)
 // cppcheck-suppress unusedFunction
 void MyGame::render(const ASGE::GameTime& game_time)
 {
-
-  switch(game_state)
+  switch (game_state)
   {
     case SPLASH_SCREEN:
       renderSplash();
@@ -394,7 +361,6 @@ void MyGame::render(const ASGE::GameTime& game_time)
     case GAME_OVER:
       renderGameOver();
       break;
-
   }
   return;
 }
@@ -410,40 +376,29 @@ void MyGame::renderMainMenu()
   renderer->setClearColour(ASGE::COLOURS::BLACK);
   renderer->renderSprite(*main_menu);
   main_menu_icon->xPos(450.0f);
-switch(main_menu_option)
-{
-  case NEW_GAME:
-    main_menu_icon->yPos(315.0f);
-    break;
-  case LOAD_GAME:
-    main_menu_icon->yPos(397.5f);
-    break;
-  case EXIT_GAME:
-    main_menu_icon->yPos(480.0f);
-    break;
-}
+  switch (main_menu_option)
+  {
+    case NEW_GAME:
+      main_menu_icon->yPos(315.0f);
+      break;
+    case LOAD_GAME:
+      main_menu_icon->yPos(397.5f);
+      break;
+    case EXIT_GAME:
+      main_menu_icon->yPos(480.0f);
+      break;
+  }
 
   renderer->renderSprite(*main_menu_icon);
 }
 
 void MyGame::renderInGame()
 {
-
-GameObject player = player_one.getPlayerGameobject();
+  GameObject player = player_one.getPlayerGameobject();
   renderer->renderSprite(*player.getMySprite());
-
 }
 
-void MyGame::renderGameOver()
-{
+void MyGame::renderGameOver() {}
 
-}
-
-void MyGame::renderPause()
-{
-
-}
-void MyGame::renderInventory()
-{
-
-}
+void MyGame::renderPause() {}
+void MyGame::renderInventory() {}

@@ -2,27 +2,27 @@
 // Created by haydn on 20/01/2019.
 //
 
-#include "GameObject.h"
 #include "Clue.h"
+#include "Exit.h"
+#include "GameObject.h"
 #include "Item.h"
 #include "Puzzle.h"
-#include "Exit.h"
 
 #ifndef EXMACHINA_ROOM_H
-#define EXMACHINA_ROOM_H
+#  define EXMACHINA_ROOM_H
 
 class Room
 {
- public:
-  GameObject* getMyBackground() ;
+  public:
+  GameObject* getMyBackground();
   void setMyBackground(GameObject* new_background);
-  GameObject* getMyForeground() ;
+  GameObject* getMyForeground();
   void setMyForeground(GameObject* new_foreground);
-  Clue* getMyClues() ;
+  Clue* getMyClues();
   void setMyClues(Clue* new_clues);
-  Item* getMyItems() ;
+  Item* getMyItems();
   void setMyItems(Item* new_items);
-  Puzzle getMyPuzzle() ;
+  Puzzle getMyPuzzle();
   void setMyPuzzle(Puzzle new_puzzle);
   int getRoomID();
   void setRoomID(int new_id);
@@ -31,7 +31,7 @@ class Room
   void reomveItem(int item_ID);
   void addItem(int item_ID);
 
- private:
+  private:
   GameObject* my_background;
   GameObject* my_foreground;
   Clue* my_clues;
@@ -41,4 +41,4 @@ class Room
   Exit* my_exits;
 };
 
-#endif //EXMACHINA_ROOM_H
+#endif // EXMACHINA_ROOM_H

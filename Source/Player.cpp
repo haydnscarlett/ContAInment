@@ -100,7 +100,4 @@ void Player::setPlayerSprites(ASGE::Sprite* new_player_sprites[])
   {
     player_sprites[i] = new_player_sprites[i];
   }
-
 }
-
-

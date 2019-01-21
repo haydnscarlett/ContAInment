@@ -1,6 +1,6 @@
 #pragma once
 //#include <vector>
-//namespace ASGE
+// namespace ASGE
 //{
 //
 //	class Locator
@@ -29,7 +29,7 @@
 //
 //			// return FAILED
 //		}
-//		
+//
 //
 //	private:
 //		template <class Service>

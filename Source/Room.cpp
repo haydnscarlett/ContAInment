@@ -44,7 +44,7 @@ void Room::setMyItems(Item* new_items)
   my_items = new_items;
 }
 
- Puzzle Room::getMyPuzzle()
+Puzzle Room::getMyPuzzle()
 {
   return my_puzzle;
 }
@@ -74,11 +74,5 @@ void Room::setMyExits(Exit* new_exits)
   my_exits = new_exits;
 }
 
-void reomveItem(int item_ID)
-{
-  
-}
-void addItem(int item_ID)
-{
-  
-}
+void reomveItem(int item_ID) {}
+void addItem(int item_ID) {}
