@@ -3,6 +3,7 @@
 //
 
 #include "Clue.h"
+#include "Constants.h"
 GameObject Clue::getMyGameObject()
 {
   return my_gameobject;
@@ -28,4 +29,26 @@ void Clue::setClueID(int new_clue_id)
   clue_id = new_clue_id;
 }
 
-void Clue::addClueToPlayer(int* clues_found) {}
+bool Clue::addClueToPlayer(int* clues_found, int index)
+{
+  bool already_found = false;
+  for (int i = 0; i < index; i ++)
+  {
+    if (clue_id == clues_found[i])
+    {
+      already_found = true;
+    }
+  }
+  if (!already_found)
+  {
+    clues_found = new int[index];
+    clues_found[index - 1] = clue_id;
+  }
+  return already_found;
+}
+
+Clue::~Clue()
+{
+
+}
+

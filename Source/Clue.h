@@ -9,13 +9,14 @@
 class Clue
 {
   public:
+  virtual ~Clue();
   GameObject getMyGameObject();
   void setMyGameObject(GameObject new_gameobject);
   std::string getItemDescription();
   void setItemDescription(std::string new_item_description);
   int getClueID();
   void setClueID(int new_clue_id);
-  void addClueToPlayer(int* clues_found);
+  bool addClueToPlayer(int* clues_found, int index);
 
   private:
   GameObject my_gameobject;

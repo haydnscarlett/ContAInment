@@ -9,7 +9,7 @@ GameObject Exit::getMyExitGameobject()
   return my_exit_gameobject;
 }
 
-void Exit::setMyExitGameobject(GameObject new_exit_gameobject)
+void Exit::setMyExitGameobject( GameObject new_exit_gameobject)
 {
   my_exit_gameobject = new_exit_gameobject;
 }

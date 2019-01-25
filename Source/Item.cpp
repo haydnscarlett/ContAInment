@@ -1,7 +1,6 @@
 //
 // Created by h2-scarlett on 18/01/2019.
 //
-#include "GameObject.h"
 
 #include "Item.h"
 GameObject Item::getMyGameObject()
@@ -36,21 +35,12 @@ void Item::setItemID(int new_item_id)
 {
   item_id = new_item_id;
 }
-int Item::getItemOneRequired()
+Item Item::addItemToInventory()
 {
-  return item_required_one;
+  return *this;
 }
-void Item::setItemOneRequired(int new_id)
+
+Item::~Item()
 {
-  item_required_one = new_id;
+
 }
-int Item::getItemTwoRequired()
-{
-  return item_required_two;
-}
-void Item::setItemTwoRequired(int new_id)
-{
-  item_required_two = new_id;
-}
-void Item::craftItem(int* inventory) {}
-void Item::addItemToInventory(int* inventory) {}

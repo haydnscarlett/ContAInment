@@ -11,21 +11,17 @@
 class GameObject
 {
   public:
-  ASGE::Sprite* getMySprite();
-
-  public:
+  virtual ~GameObject();
   void setMySprite(ASGE::Sprite* new_sprite);
-
-  public:
   Point2D getMyLocation();
-
-  public:
   void setMyLocation(Point2D new_location);
+  ASGE::Sprite* getMySprite() const;
+  bool isBetween(float value, float min, float max) const;
+  bool isInside(float other_x, float other_y) const;
+  bool collisionCheck(Point2D player_location, int player_direction);
 
-  private:
-  ASGE::Sprite* my_sprite;
-
-  private:
+ private:
+  ASGE::Sprite* my_sprite = nullptr;
   Point2D location;
 };
 

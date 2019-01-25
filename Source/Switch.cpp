@@ -33,3 +33,7 @@ void Switch::setOn(bool new_on)
 {
   on = new_on;
 }
+
+Switch::~Switch()
+{
+}
