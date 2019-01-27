@@ -46,7 +46,10 @@ class Room
   void moveRoom(bool moving, int direction);
   bool checkCollisions(Player* player, std::string* text_to_display,
                        int* game_state);
+  void resetRoomPosition(Point2D distance);
   bool checkForInteractables(Player* player, std::string* text_to_display);
+  void checkExits(Player* player, std::string* text_to_display,
+                        int* game_state, bool power_on, int* exit_check);
 
  private:
   GameObject* my_background;

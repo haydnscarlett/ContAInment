@@ -30,7 +30,24 @@ add_executable(
         ${PROJECT_NAME}
         main.cpp
         Source/MyGame.cpp
-        Source/MyGame.h Source/GameObject.cpp Source/GameObject.h Source/Item.cpp Source/Item.h Source/Clue.cpp Source/Clue.h Source/Room.cpp Source/Room.h Source/Exit.cpp Source/Exit.h Source/Puzzle.cpp Source/Puzzle.h Source/Switch.cpp Source/Switch.h Source/Player.cpp Source/Player.h Source/Constants.h)
+        Source/MyGame.h
+        Source/Clue.cpp
+        Source/Clue.h
+        Source/Constants.h
+        Source/GameObject.cpp
+        Source/GameObject.h
+        Source/Exit.cpp
+        Source/Exit.h
+        Source/Item.cpp
+        Source/Item.h
+        Source/Puzzle.cpp
+        Source/Puzzle.h
+        Source/Player.cpp
+        Source/Player.h
+        Source/Room.cpp
+        Source/Room.h
+        Source/Switch.cpp
+        Source/Switch.h)
 
 ## library includes
 target_include_directories(

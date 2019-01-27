@@ -9,6 +9,9 @@
 class Item
 {
   public:
+  Item();
+  Item(GameObject new_gameobject, int new_item_id,
+      std::string new_item_description, std::string new_item_name);
   virtual ~Item();
   GameObject getMyGameObject();
   void setMyGameObject(GameObject new_gameobject);

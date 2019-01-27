@@ -84,7 +84,7 @@ void Puzzle::setRequiredItemID(int new_required_item_id)
   required_item_id = new_required_item_id;
 }
 
-bool Puzzle::checkPuzzleCompleted(Player* player)
+bool Puzzle::checkPuzzleCompleted(Player* player, bool power_on)
 {
   bool puzzle_completed = false;
   bool switches_completed = false;
@@ -142,16 +142,19 @@ bool Puzzle::checkPuzzleCompleted(Player* player)
 
   if(switches_completed && movables_completed && required_item_completed)
   {
-    player->setNumberPuzzlesSolved(player->getNumberPuzzlesSolved() + 1);
-
-    int* tmp = new int[player->getNumberPuzzlesSolved()];
-    for(int i = 0; i < player->getNumberPuzzlesSolved() - 1; i++)
+    if((power_required && power_on == true) || !power_required)
     {
-      tmp[i] = player->getPuzzlesSolved()[i];
+      player->setNumberPuzzlesSolved(player->getNumberPuzzlesSolved() + 1);
+
+      int* tmp = new int[player->getNumberPuzzlesSolved()];
+      for(int i = 0; i < player->getNumberPuzzlesSolved() - 1; i++)
+      {
+        tmp[i] = player->getPuzzlesSolved()[i];
+      }
+      tmp[player->getNumberPuzzlesSolved() - 1] = puzzle_id;
+      puzzle_completed = true;
+      player->setCluesFound(tmp);
     }
-    tmp[player->getNumberPuzzlesSolved() - 1] = puzzle_id;
-    puzzle_completed = true;
-    player->setCluesFound(tmp);
   }
   return puzzle_completed;
 }
@@ -184,4 +187,14 @@ std::string Puzzle::getPuzzleSolvedMessage()
 void Puzzle::setPuzzleSolvedMessage(std::string new_puzzle_solved_message)
 {
   puzzle_solved_message = new_puzzle_solved_message;
+}
+
+bool Puzzle::isPowerRequired()
+{
+  return power_required;
+}
+
+void Puzzle::setPowerRequired(bool new_power_required)
+{
+  power_required = new_power_required;
 }

@@ -9,6 +9,9 @@
 class Clue
 {
   public:
+  Clue();
+  Clue(GameObject new_gameobject, int new_clue_id,
+       std::string new_item_description);
   virtual ~Clue();
   GameObject getMyGameObject();
   void setMyGameObject(GameObject new_gameobject);

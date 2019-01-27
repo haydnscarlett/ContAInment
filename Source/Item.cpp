@@ -44,3 +44,24 @@ Item::~Item()
 {
 
 }
+
+
+Item::Item(GameObject new_gameobject, int new_item_id,
+           std::string new_item_description, std::string new_item_name)
+{
+  my_gameobject = new_gameobject;
+  item_id = new_item_id;
+  item_description = new_item_description;
+  item_name = new_item_name;
+}
+
+
+Item::Item()
+{
+  Point2D new_location;
+  GameObject new_gameobject(-1, new_location);
+  my_gameobject = new_gameobject;
+  item_id = -1;
+  item_description = "";
+  item_name = "";
+}

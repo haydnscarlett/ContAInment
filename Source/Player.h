@@ -12,10 +12,13 @@
 class Player
 {
  public:
+  Player();
+  Player(GameObject new_player_gameobject, Item inventory[],
+         int* new_clues_found, int new_number_clues_found,
+         int* new_puzzles_solved, int new_number_puzzles_solved,
+         int new_direction, bool new_moving, int new_sprite_index);
   GameObject getPlayerGameobject() ;
   void setPlayerGameobject( GameObject player_gameobject);
-  ASGE::Sprite* getPlayerSprite(int index) ;
-  void setPlayerSprites(ASGE::Sprite* player_sprites[]);
   Item getInventory(int index) ;
   void addToInventory(Item new_item, int index) ;
   int* getCluesFound() ;
@@ -35,12 +38,11 @@ class Player
   void savePlayerData();
   void loadPlayerData();
   void movePlayer(double animation_counter);
-  void setupPlayer(ASGE::Sprite* new_sprites[]);
+  void setupPlayer();
 
 
  private:
   GameObject player_gameobject;
-  ASGE::Sprite* player_sprites[16];
   Item inventory[15] ;
   int* clues_found;
   int number_clues_found;

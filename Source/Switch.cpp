@@ -34,6 +34,22 @@ void Switch::setOn(bool new_on)
   on = new_on;
 }
 
-Switch::~Switch()
+
+
+Switch::Switch(GameObject new_on_gameobject, GameObject new_off_gameobject,
+               bool new_on)
 {
+  my_on_gameobject = new_on_gameobject;
+  my_off_gameobject = new_off_gameobject;
+  on = new_on;
+}
+
+
+Switch::Switch()
+{
+  Point2D new_location;
+  GameObject new_gameobject(-1, new_location);
+  my_on_gameobject = new_gameobject;
+  my_off_gameobject = new_gameobject;
+  on = false;
 }

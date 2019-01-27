@@ -9,7 +9,9 @@
 class Switch
 {
  public:
-  virtual ~Switch();
+  Switch();
+  Switch(GameObject new_on_gameobject, GameObject new_off_gameobject,
+         bool new_on);
   GameObject getMyOnGameobject();
   void setMyOnGameobject(GameObject my_on_gameobject);
   GameObject getMyOffGameobject();

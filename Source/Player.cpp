@@ -6,6 +6,59 @@
 #include "Player.h"
 #include "Constants.h"
 
+Player::Player()
+{
+
+  Point2D new_location;
+  GameObject new_gameobject(-1, new_location);
+
+  player_gameobject = new_gameobject;
+  for (int i =0; i < 15; i++)
+  {
+    inventory[i].setMyGameObject(new_gameobject);
+    inventory[i].setItemName("");
+    inventory[i].setItemDescription("");
+    inventory[i].setItemID(-1);
+  }
+  clues_found = nullptr;
+  number_clues_found = 0;
+  puzzles_solved= nullptr;
+  number_puzzles_solved = 0;
+  direction = 0;
+  moving = false;
+  sprite_index = 0;
+}
+Player::Player(GameObject new_player_gameobject, Item new_inventory[],
+int* new_clues_found, int new_number_clues_found,
+int* new_puzzles_solved, int new_number_puzzles_solved,
+int new_direction, bool new_moving, int new_sprite_index)
+{
+  player_gameobject = new_player_gameobject;
+  for (int i =0; i < 15; i++)
+  {
+    inventory[i].setMyGameObject(new_inventory[i].getMyGameObject());
+    inventory[i].setItemName(new_inventory[i].getItemName());
+    inventory[i].setItemDescription(new_inventory[i].getItemDescription());
+    inventory[i].setItemID(new_inventory[i].getItemID());
+  }
+  number_clues_found = new_number_clues_found;
+  clues_found = new int[number_clues_found];
+
+  for (int i =0; i < number_clues_found; i++)
+  {
+    clues_found[i] = new_clues_found[i];
+  }
+  number_puzzles_solved = new_number_puzzles_solved;
+  puzzles_solved = new int[number_puzzles_solved];
+  for (int i =0; i < number_puzzles_solved; i++)
+  {
+    puzzles_solved[i] = new_puzzles_solved[i];
+  }
+  direction = new_direction;
+  moving = new_moving;
+  sprite_index = new_sprite_index;
+
+}
 GameObject Player::getPlayerGameobject()
 {
   return player_gameobject;
@@ -14,11 +67,6 @@ GameObject Player::getPlayerGameobject()
 void Player::setPlayerGameobject(GameObject new_player_gameobject)
 {
   player_gameobject = new_player_gameobject;
-}
-
-ASGE::Sprite* Player::getPlayerSprite(int index)
-{
-  return player_sprites[index];
 }
 
 Item Player::getInventory(int index)
@@ -100,29 +148,17 @@ void Player::setNumberPuzzlesSolved(int new_number_puzzles_solved)
   number_puzzles_solved = new_number_puzzles_solved;
 }
 
-void Player::setPlayerSprites(ASGE::Sprite* new_player_sprites[])
-{
-  for (int i = 0; i < 16; i++)
-  {
-    player_sprites[i] = new_player_sprites[i];
-  }
-
-}
-
-
 void Player::savePlayerData()
 {
+// Select a directory that has write access and exists
+  ASGE::FILEIO::setWriteDir(".");
+  ASGE::FILEIO::createDir("userdata/");
+  ASGE::FILEIO::mount("./userdata/", "userdata");
+  ASGE::FILEIO::printFiles("/userdata");
+
   using Buffer = ASGE::FILEIO::IOBuffer;
   Buffer data = Buffer();
 // generate the data buffer that represents a player
-  for (int i = 0; i < 15; i++)
-  {
-    data.append(inventory[i].getMyGameObject().getMyLocation().x);
-    data.append(inventory[i].getMyGameObject().getMyLocation().y);
-    data.append(inventory[i].getItemName());
-    data.append(inventory[i].getItemDescription());
-    data.append(inventory[i].getItemID());
-  }
   data.append(number_clues_found);
   for (int i = 0; i < number_clues_found; i++)
   {
@@ -137,12 +173,25 @@ void Player::savePlayerData()
   data.append(direction);
   data.append(moving);
   data.append(sprite_index);
+  for (int i = 0; i < 15; i++)
+  {
+    data.append(inventory[i].getMyGameObject().getMySpriteId());
+  }
+  for (int i = 0; i < 15; i++)
+  {
+    data.append(inventory[i].getItemID());
+  }
+  for (int i = 0; i < 15; i++)
+  {
+    data.append(inventory[i].getItemName());
+    data.append(inventory[i].getItemDescription());
+  }
 
   using File = ASGE::FILEIO::File;
   File player_data = File();
 // open the file in write mode
   if(player_data.open( "/userdata/player.dat",
-                     ASGE::FILEIO::File::IOMode::WRITE))
+                       ASGE::FILEIO::File::IOMode::WRITE))
   {
     // write the buffer to the file
     player_data.write(data);
@@ -157,12 +206,50 @@ void Player::loadPlayerData()
   File  file = File();
 
 // attempt to open save data file
-  if( file.open("/data/userdata/player_data.dat"))
+  if( file.open("/userdata/player.dat" , ASGE::FILEIO::File::IOMode::READ))
   {
     using Buffer = ASGE::FILEIO::IOBuffer;
     Buffer buffer = file.read();
+    char* p_end;
+    number_clues_found = strtol(buffer.as_char(), &p_end, -1);
+    for (int i = 0; i < number_clues_found; i++)
+    {
+      clues_found[i] = strtol(buffer.as_char(), &p_end, -1);
+    }
+    number_puzzles_solved =  strtol(buffer.as_char(), &p_end, -1);
+    for (int i = 0; i < number_puzzles_solved; i++)
+    {
+      puzzles_solved[i] =  strtol(buffer.data.get(), &p_end, -1);
+    }
 
+    direction =  strtol(buffer.as_char(), &p_end, -1);
+    moving =  static_cast<bool>(strtol(buffer.as_char(), &p_end, 1));
+    sprite_index =  strtol(buffer.as_char(), &p_end, -1);
+    for (int i = 0; i < 15; i++)
+    {
+      GameObject new_gameobject;
+      new_gameobject.setMySpriteId(
+          strtol(buffer.as_char(), &p_end, -1));
+      inventory[i].setMyGameObject(new_gameobject);
+    }
+    for (int i = 0; i < 15; i++)
+    {
+      inventory[i].setItemID(strtol(buffer.as_char(), &p_end, -1));
+    }
+    for (int i = 0; i < 15; i++)
+    {
+      inventory[i].setItemName(static_cast<std::string>(buffer.as_char()));
+      inventory[i].setItemDescription(static_cast<std::string>(buffer.as_char()));
+    }
   }
+
+  file.close();
+
+
+
+
+
+
 }
 
 void Player::movePlayer(double animation_counter)
@@ -218,7 +305,7 @@ void Player::movePlayer(double animation_counter)
           }
           break;
       }
-      player_gameobject.setMySprite(player_sprites[sprite_index]);
+      player_gameobject.setMySpriteId(sprite_index);
     }
 
   }
@@ -227,27 +314,27 @@ void Player::movePlayer(double animation_counter)
     if (sprite_index > 0 && sprite_index < 4)
     {
       sprite_index = 0;
-      player_gameobject.setMySprite(player_sprites[sprite_index]);
+      player_gameobject.setMySpriteId(sprite_index);
     }
     else if (sprite_index > 4 && sprite_index < 8)
     {
       sprite_index = 4;
-      player_gameobject.setMySprite(player_sprites[sprite_index]);
+      player_gameobject.setMySpriteId(sprite_index);
     }
     else if (sprite_index > 8 && sprite_index < 12)
     {
       sprite_index = 8;
-      player_gameobject.setMySprite(player_sprites[sprite_index]);
+      player_gameobject.setMySpriteId(sprite_index);
     }
     else if (sprite_index > 12 && sprite_index < 16)
     {
       sprite_index = 12;
-      player_gameobject.setMySprite(player_sprites[sprite_index]);
+      player_gameobject.setMySpriteId(sprite_index);
     }
   }
 }
 
-void Player::setupPlayer(ASGE::Sprite* new_sprites[])
+void Player::setupPlayer()
 {
   clues_found = new int[0];
   direction = SOUTH;
@@ -256,18 +343,17 @@ void Player::setupPlayer(ASGE::Sprite* new_sprites[])
   number_puzzles_solved = 0;
   puzzles_solved = new int[0];
   sprite_index = 0;
-  setPlayerSprites(new_sprites);
   GameObject new_player_gameobject;
-  new_player_gameobject.setMySprite(new_sprites[0]);
+  new_player_gameobject.setMySpriteId(0);
   Point2D new_location;
-  new_location.x = new_sprites[0]->xPos();
-  new_location.y = new_sprites[0]->yPos();
+  new_location.x = GAME_WIDTH / 2 - GRID_SIZE / 2;
+  new_location.y = GAME_HEIGHT / 2  - GRID_SIZE / 2;
   new_player_gameobject.setMyLocation(new_location);
   setPlayerGameobject(new_player_gameobject);
   for (int i =0; i < 15; i++)
   {
     GameObject new_gameobject;
-
+    new_gameobject.setMySpriteId(-1);
     inventory[i].setMyGameObject(new_gameobject);
     inventory[i].setItemName("");
     inventory[i].setItemDescription("");

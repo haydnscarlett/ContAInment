@@ -164,9 +164,6 @@ void Room::moveRoom(bool moving, int direction)
 {
   if (moving)
   {
-
-
-
     Switch* switches = nullptr;
     GameObject* clue_gameobjects = nullptr;
     GameObject* item_gameobjects = nullptr;
@@ -186,93 +183,72 @@ void Room::moveRoom(bool moving, int direction)
 
     for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
     {
-      ASGE::Sprite* background_sprite = nullptr;
       Point2D new_location = my_background[i].getMyLocation();
-      background_sprite = my_background[i].getMySprite();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE * 0.25f;
-          background_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          background_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          background_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          background_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      my_background[i].setMySprite(background_sprite);
       my_background[i].setMyLocation(new_location);
     }
 
     for (int i = 0; i < (((my_gridsize_x + my_gridsize_y) * 2) + 4); i++)
     {
-      ASGE::Sprite* wall_sprite = nullptr;
       Point2D new_location = my_walls[i].getMyLocation();
-      wall_sprite = my_walls[i].getMySprite();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE * 0.25f;
-          wall_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          wall_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          wall_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          wall_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      my_walls[i].setMySprite(wall_sprite);
       my_walls[i].setMyLocation(new_location);
     }
 
     for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
     {
-      if(my_foreground[i].getMySprite() != nullptr)
+      if(my_foreground[i].getMySpriteId() != -1)
       {
-        ASGE::Sprite* foreground_sprite = nullptr;
         Point2D new_location = my_foreground[i].getMyLocation();
-        foreground_sprite = my_foreground[i].getMySprite();
         switch(direction)
         {
           case SOUTH :
             new_location.y -= GRID_SIZE* 0.25f;
-            foreground_sprite->yPos(new_location.y);
             break;
           case WEST :
             new_location.x += GRID_SIZE* 0.25f;
-            foreground_sprite->xPos(new_location.x);
             break;
           case NORTH :
             new_location.y += GRID_SIZE* 0.25f;
-            foreground_sprite->yPos(new_location.y);
             break;
           case EAST :
             new_location.x -= GRID_SIZE* 0.25f;
-            foreground_sprite->xPos(new_location.x);
             break;
           default :
             break;
         }
-        my_foreground[i].setMySprite(foreground_sprite);
         my_foreground[i].setMyLocation(new_location);
 
       }
@@ -280,62 +256,48 @@ void Room::moveRoom(bool moving, int direction)
     for (int i = 0; i < number_of_clues; i++)
     {
       clue_gameobjects[i] = my_clues[i].getMyGameObject();
-      ASGE::Sprite* clue_sprite = nullptr;
-      clue_sprite = clue_gameobjects[i].getMySprite();
       Point2D new_location = clue_gameobjects[i].getMyLocation();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE* 0.25f;
-          clue_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          clue_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          clue_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          clue_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      clue_gameobjects[i].setMySprite(clue_sprite);
       clue_gameobjects[i].setMyLocation(new_location);
       my_clues[i].setMyGameObject(clue_gameobjects[i]);
     }
     for (int i = 0; i < number_of_items; i++)
     {
       item_gameobjects[i] = my_items[i].getMyGameObject();
-      ASGE::Sprite* item_sprite = nullptr;
-      item_sprite = item_gameobjects[i].getMySprite();
       Point2D new_location = item_gameobjects[i].getMyLocation();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE* 0.25f;
-          item_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          item_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          item_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          item_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      item_gameobjects[i].setMySprite(item_sprite);
       item_gameobjects[i].setMyLocation(new_location);
       my_items[i].setMyGameObject(item_gameobjects[i]);
     }
@@ -343,39 +305,25 @@ void Room::moveRoom(bool moving, int direction)
     {
       switch_on_gameobjects[i] = switches[i].getMyOnGameobject();
       switch_off_gameobjects[i] = switches[i].getMyOffGameobject();
-      ASGE::Sprite* switch_on_sprite = nullptr;
-      switch_on_sprite = switch_on_gameobjects[i].getMySprite();
-      ASGE::Sprite* switch_off_sprite = nullptr;
-      switch_off_sprite = switch_off_gameobjects[i].getMySprite();
       Point2D new_location = switch_on_gameobjects[i].getMyLocation();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE* 0.25f;
-          switch_on_sprite->yPos(new_location.y);
-          switch_on_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          switch_on_sprite->xPos(new_location.x);
-          switch_off_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          switch_on_sprite->yPos(new_location.y);
-          switch_off_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          switch_on_sprite->xPos(new_location.x);
-          switch_off_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      switch_on_gameobjects[i].setMySprite(switch_on_sprite);
       switch_on_gameobjects[i].setMyLocation(new_location);
-      switch_off_gameobjects[i].setMySprite(switch_off_sprite);
       switch_off_gameobjects[i].setMyLocation(new_location);
       switches[i].setMyOnGameobject(switch_on_gameobjects[i]);
       switches[i].setMyOffGameobject(switch_off_gameobjects[i]);
@@ -383,31 +331,24 @@ void Room::moveRoom(bool moving, int direction)
     for (int i = 0; i < my_puzzle.getNumberMovables(); i++)
     {
       movable_gameobjects[i] = my_clues[i].getMyGameObject();
-      ASGE::Sprite* movable_sprite = nullptr;
-      movable_sprite = movable_gameobjects[i].getMySprite();
       Point2D new_location = movable_gameobjects[i].getMyLocation();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE* 0.25f;
-          movable_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          movable_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          movable_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          movable_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      movable_gameobjects[i].setMySprite(movable_sprite);
       movable_gameobjects[i].setMyLocation(new_location);
     }
     my_puzzle.setMySwitches(switches);
@@ -416,31 +357,24 @@ void Room::moveRoom(bool moving, int direction)
     for (int i = 0; i < number_of_exits; i++)
     {
       exit_gameobjects[i] = my_exits[i].getMyExitGameobject();
-      ASGE::Sprite* exit_sprite = nullptr;
       Point2D new_location = exit_gameobjects[i].getMyLocation();
-      exit_sprite = exit_gameobjects[i].getMySprite();
       switch(direction)
       {
         case SOUTH :
           new_location.y -= GRID_SIZE* 0.25f;
-          exit_sprite->yPos(new_location.y);
           break;
         case WEST :
           new_location.x += GRID_SIZE* 0.25f;
-          exit_sprite->xPos(new_location.x);
           break;
         case NORTH :
           new_location.y += GRID_SIZE* 0.25f;
-          exit_sprite->yPos(new_location.y);
           break;
         case EAST :
           new_location.x -= GRID_SIZE* 0.25f;
-          exit_sprite->xPos(new_location.x);
           break;
         default :
           break;
       }
-      exit_gameobjects[i].setMySprite(exit_sprite);
       exit_gameobjects[i].setMyLocation(new_location);
       my_exits[i].setMyExitGameobject(exit_gameobjects[i]);
     }
@@ -484,45 +418,6 @@ bool Room::checkCollisions(Player* player, std::string* text_to_display,
         player->getPlayerGameobject().getMyLocation(), player->getDirection()))
     {
       colliding = true;
-    }
-  }
-
-  for (int i = 0; i < number_of_exits; i++)
-  {
-    if (my_exits[i].isLocked())
-    {
-      if(my_exits[i].getMyExitGameobject().collisionCheck(
-          player->getPlayerGameobject().getMyLocation(), player->getDirection()))
-      {
-        if(my_puzzle.checkPuzzleCompleted(player))
-        {
-          for (int j =0; j < my_puzzle.getNumberLinkedExits(); j++)
-          {
-            for(int k =0; k < number_of_exits; k++)
-            {
-
-              if (my_puzzle.getLinkedExits()[j] == my_exits[i].getExitID())
-              {
-                my_exits[i].setLocked(false);
-              }
-            }
-          }
-          *text_to_display = my_puzzle.getPuzzleSolvedMessage();
-          *game_state = TEXT_DISPLAY;
-        }
-        else
-        {
-          *text_to_display = "It's Locked!";
-          *game_state = TEXT_DISPLAY;
-          player->setDirection(player->getDirection() - 2);
-          if(player->getDirection() < 0)
-          {
-
-            player->setDirection(player->getDirection() + 4);
-          }
-          colliding = true;
-        }
-      }
     }
   }
   for (int i = 0; i < my_puzzle.getNumberSwitches(); i++)
@@ -603,4 +498,170 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display)
 Room::~Room()
 {
 
+}
+
+void Room::resetRoomPosition(Point2D distance)
+{
+
+  Switch* switches = nullptr;
+  GameObject* clue_gameobjects = nullptr;
+  GameObject* item_gameobjects = nullptr;
+  GameObject* switch_on_gameobjects = nullptr;
+  GameObject* switch_off_gameobjects = nullptr;
+  GameObject* movable_gameobjects = nullptr;
+  GameObject* exit_gameobjects = nullptr;
+
+  clue_gameobjects = new GameObject[number_of_clues];
+  item_gameobjects = new GameObject[number_of_items];
+  switches = my_puzzle.getMySwitches();
+  switch_on_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
+  switch_off_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
+  movable_gameobjects = my_puzzle.getMyMovables();
+  exit_gameobjects = new GameObject[number_of_exits];
+
+
+  for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
+  {
+    Point2D new_location = my_background[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    my_background[i].setMyLocation(new_location);
+  }
+
+  for (int i = 0; i < (((my_gridsize_x + my_gridsize_y) * 2) + 4); i++)
+  {
+    Point2D new_location = my_walls[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    my_walls[i].setMyLocation(new_location);
+  }
+
+  for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
+  {
+    if(my_foreground[i].getMySpriteId() != -1)
+    {
+      Point2D new_location = my_foreground[i].getMyLocation();
+      new_location.x += distance.x;
+      new_location.y += distance.y;
+      my_foreground[i].setMyLocation(new_location);
+
+    }
+  }
+  for (int i = 0; i < number_of_clues; i++)
+  {
+    clue_gameobjects[i] = my_clues[i].getMyGameObject();
+    Point2D new_location = clue_gameobjects[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    clue_gameobjects[i].setMyLocation(new_location);
+    my_clues[i].setMyGameObject(clue_gameobjects[i]);
+  }
+  for (int i = 0; i < number_of_items; i++)
+  {
+    item_gameobjects[i] = my_items[i].getMyGameObject();
+    Point2D new_location = item_gameobjects[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    item_gameobjects[i].setMyLocation(new_location);
+    my_items[i].setMyGameObject(item_gameobjects[i]);
+  }
+  for (int i = 0; i < my_puzzle.getNumberSwitches(); i++)
+  {
+    switch_on_gameobjects[i] = switches[i].getMyOnGameobject();
+    switch_off_gameobjects[i] = switches[i].getMyOffGameobject();
+    Point2D new_location = switch_on_gameobjects[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    switch_on_gameobjects[i].setMyLocation(new_location);
+    switch_off_gameobjects[i].setMyLocation(new_location);
+    switches[i].setMyOnGameobject(switch_on_gameobjects[i]);
+    switches[i].setMyOffGameobject(switch_off_gameobjects[i]);
+  }
+  for (int i = 0; i < my_puzzle.getNumberMovables(); i++)
+  {
+    movable_gameobjects[i] = my_clues[i].getMyGameObject();
+    Point2D new_location = movable_gameobjects[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    movable_gameobjects[i].setMyLocation(new_location);
+  }
+  my_puzzle.setMySwitches(switches);
+  my_puzzle.setMyMovables(movable_gameobjects);
+
+  for (int i = 0; i < number_of_exits; i++)
+  {
+    exit_gameobjects[i] = my_exits[i].getMyExitGameobject();
+    Point2D new_location = exit_gameobjects[i].getMyLocation();
+    new_location.x += distance.x;
+    new_location.y += distance.y;
+    exit_gameobjects[i].setMyLocation(new_location);
+    my_exits[i].setMyExitGameobject(exit_gameobjects[i]);
+  }
+}
+
+
+void Room::checkExits(Player* player, std::string* text_to_display,
+                int* game_state, bool power_on, int* exit_check)
+{
+  exit_check[0] = 0;
+  exit_check[1] = 0;
+  exit_check[2] = 0;
+
+  for (int i = 0; i < number_of_exits; i++)
+  {
+    if (my_exits[i].isLocked())
+    {
+      if(my_exits[i].getMyExitGameobject().collisionCheck(
+          player->getPlayerGameobject().getMyLocation(), player->getDirection()))
+      {
+        if(my_puzzle.checkPuzzleCompleted(player, power_on))
+        {
+          for (int j =0; j < my_puzzle.getNumberLinkedExits(); j++)
+          {
+            for(int k =0; k < number_of_exits; k++)
+            {
+
+              if (my_puzzle.getLinkedExits()[j] == my_exits[i].getExitID())
+              {
+                my_exits[i].setLocked(false);
+              }
+            }
+          }
+          *text_to_display = my_puzzle.getPuzzleSolvedMessage();
+          *game_state = TEXT_DISPLAY;
+          exit_check[0] = 2;
+          exit_check[1] = my_exits[i].getConnectedRoomID();
+          exit_check[2] = my_exits[i].getConnectedExitID();
+          return ;
+        }
+        else
+        {
+          *text_to_display = "It's Locked!";
+          *game_state = TEXT_DISPLAY;
+          player->setDirection(player->getDirection() - 2);
+          if(player->getDirection() < 0)
+          {
+
+            player->setDirection(player->getDirection() + 4);
+          }
+          exit_check[0] = 1;
+          exit_check[1] = 0;
+          exit_check[2] = 0;
+          return ;
+        }
+      }
+    }
+    else
+    {
+      if(my_exits[i].getMyExitGameobject().collisionCheck(
+          player->getPlayerGameobject().getMyLocation(), player->getDirection()))
+      {
+        exit_check[0] = 2;
+        exit_check[1] = my_exits[i].getConnectedRoomID();
+        exit_check[2] = my_exits[i].getConnectedExitID();
+        return ;
+      }
+    }
+  }
+  return ;
 }

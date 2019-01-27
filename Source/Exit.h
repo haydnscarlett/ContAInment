@@ -9,6 +9,9 @@
 class Exit
 {
  public:
+  Exit();
+  Exit(GameObject new_gameobject, int new_exit_id, int new_connected_room_id,
+       int new_connected_exit_id, bool new_locked);
   GameObject getMyExitGameobject();
   void setMyExitGameobject(GameObject new_exit_gameobject);
   int getExitID() ;

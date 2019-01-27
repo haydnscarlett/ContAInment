@@ -52,3 +52,21 @@ Clue::~Clue()
 
 }
 
+
+Clue::Clue(GameObject new_gameobject, int new_clue_id,
+    std::string new_item_description)
+{
+  my_gameobject = new_gameobject;
+  clue_id = new_clue_id;
+  item_description = new_item_description;
+}
+
+
+Clue::Clue()
+{
+  Point2D new_location;
+  GameObject new_gameobject(-1, new_location);
+  my_gameobject = new_gameobject;
+  clue_id = -1;
+  item_description = "";
+}

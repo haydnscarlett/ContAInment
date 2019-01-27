@@ -5,10 +5,6 @@
 #include "GameObject.h"
 #include "Constants.h"
 
-void GameObject::setMySprite(ASGE::Sprite* new_sprite)
-{
-  my_sprite = new_sprite;
-}
 Point2D GameObject::getMyLocation()
 {
   return location;
@@ -18,11 +14,6 @@ void GameObject::setMyLocation(Point2D new_location)
   location = new_location;
 }
 
-
-ASGE::Sprite* GameObject::getMySprite() const
-{
-  return my_sprite;
-}
 
 
 
@@ -103,4 +94,28 @@ bool GameObject::collisionCheck(Point2D player_location, int player_direction)
 
 GameObject::~GameObject()
 {
+}
+
+int GameObject::getMySpriteId() const
+{
+  return my_sprite_id;
+}
+
+void GameObject::setMySpriteId(int new_my_sprite_id)
+{
+  my_sprite_id = new_my_sprite_id;
+}
+
+GameObject::GameObject(int new_my_sprite_id, Point2D new_location)
+{
+  my_sprite_id = new_my_sprite_id;
+  location = new_location;
+}
+
+GameObject::GameObject()
+{
+
+  my_sprite_id = -1;
+  location.x = 0.0f;
+  location.y = 0.0f;
 }
