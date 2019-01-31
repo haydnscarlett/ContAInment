@@ -3,6 +3,7 @@
 //
 
 #include "Puzzle.h"
+#include "Constants.h"
 
 int Puzzle::getPuzzleID()
 {
@@ -115,8 +116,10 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool power_on)
     movables_completed = true;
     for (int i = 0; i < number_movables; i++)
     {
-      if(!my_movables[i].isInside(target_movable_locations[i].x,
-                                 target_movable_locations[i].y ))
+      if(!(my_movables[i].getMyLocation().x > (target_movable_locations[i].x - MOVABLE_DISTANCE_CHECK)
+          && my_movables[i].getMyLocation().x < (target_movable_locations[i].x + MOVABLE_DISTANCE_CHECK)
+          && (my_movables[i].getMyLocation().y > (target_movable_locations[i].y - MOVABLE_DISTANCE_CHECK)
+          && my_movables[i].getMyLocation().y < (target_movable_locations[i].y + MOVABLE_DISTANCE_CHECK))))
       {
         movables_completed = false;
       }
