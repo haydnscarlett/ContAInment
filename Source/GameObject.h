@@ -18,7 +18,8 @@ class GameObject
   void setMyLocation(Point2D new_location);
   bool isBetween(float value, float min, float max) const;
   bool isInside(float other_x, float other_y) const;
-  bool collisionCheck(Point2D player_location, int player_direction);
+  bool collisionCheck(Point2D player_location, int player_direction,
+                      bool double_distance);
   int getMySpriteId() const;
   void setMySpriteId(int new_my_sprite_id);
 

@@ -25,8 +25,36 @@ class MyGame : public ASGE::OGLGame
 
  private:
   void setupGame();
+  void setupWalls(GameObject* new_walls, int new_grid_size_x,
+                  int new_grid_size_y);
+  void setupFloorStandard(GameObject* new_background, int new_grid_size_x,
+                  int new_grid_size_y);
+  void setupNoPuzzle(Puzzle* new_puzzle);
   void setupRoomOne();
   void setupRoomTwo();
+  void setupRoomThree();
+  void setupRoomFour();
+  void setupRoomFive();
+  void setupRoomSix();
+  void setupRoomSeven();
+  void setupRoomEight();
+  void setupRoomNine();
+  void setupRoomTen();
+  void setupRoomEleven();
+  void setupRoomTwelve();
+  void setupRoomThirteen();
+  void setupRoomFourteen();
+  void setupRoomFifteen();
+  void setupRoomSixteen();
+  void setupRoomSeventeen();
+  void setupRoomEighteen();
+  void setupRoomNineteen();
+  void setupRoomTwenty();
+  void setupRoomTwentyOne();
+  void setupRoomTwentyTwo();
+  void setupRoomTwentyThree();
+  void setupRoomTwentyFour();
+  void setupRoomTwentyFive();
   void setupFloorSprites();
   void setupWallSprites();
   void setupForegroundSprites();
@@ -44,7 +72,10 @@ class MyGame : public ASGE::OGLGame
   void keyHandlerInventory(const ASGE::KeyEvent* key);
   void keyHandlerPauseMenu(const ASGE::KeyEvent* key);
 
+  void changeRoom();
 
+  void updateSplash(double dt_sec);
+  void updateInGame(double dt_sec);
 
   void renderSplash();
   void renderMainMenu();
@@ -55,9 +86,8 @@ class MyGame : public ASGE::OGLGame
   void renderInventory();
 
 
-
-void exitGame();
-void loadGame();
+  void exitGame();
+  void loadGame();
 
 
 

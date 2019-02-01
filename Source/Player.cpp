@@ -77,6 +77,24 @@ void Player::addToInventory(Item new_item, int index)
 {
   inventory[index] = new_item;
 }
+void Player::addToClues(int new_clue, int index)
+{
+  int* tmp;
+  tmp = new int[number_clues_found];
+  for (int i = 0; i < number_clues_found - 1; i++)
+  {
+    tmp[i]=clues_found[i];
+
+  }
+  number_clues_found++;
+  clues_found = new int[number_clues_found];
+  for (int i = 0; i < number_clues_found - 1; i++)
+  {
+    clues_found[i]=tmp[i];
+
+  }
+  clues_found[index] = new_clue;
+}
 
 int* Player::getCluesFound()
 {
@@ -159,27 +177,37 @@ void Player::savePlayerData()
   using Buffer = ASGE::FILEIO::IOBuffer;
   Buffer data = Buffer();
 // generate the data buffer that represents a player
-  data.append(number_clues_found);
+  char number[3];
+  sprintf(number,"%i", number_clues_found);
+  data.append(number, 3);
   for (int i = 0; i < number_clues_found; i++)
   {
-    data.append(clues_found[i]);
+    sprintf(number,"%i", clues_found[i]);
+    data.append(number, 3);
   }
-  data.append(number_puzzles_solved);
+  sprintf(number,"%i", number_puzzles_solved);
+  data.append(number, 3);
   for (int i = 0; i < number_puzzles_solved; i++)
   {
-    data.append(puzzles_solved[i]);
+    sprintf(number,"%i", puzzles_solved[i]);
+    data.append(number, 3);
   }
 
-  data.append(direction);
-  data.append(moving);
-  data.append(sprite_index);
+  sprintf(number,"%i", direction);
+  data.append(number, 3);
+  sprintf(number,"%i", moving);
+  data.append(number, 3);
+  sprintf(number,"%i", sprite_index);
+  data.append(number, 3);
   for (int i = 0; i < 15; i++)
   {
-    data.append(inventory[i].getMyGameObject().getMySpriteId());
+    sprintf(number,"%i", inventory[i].getMyGameObject().getMySpriteId());
+    data.append(number, 3);
   }
   for (int i = 0; i < 15; i++)
   {
-    data.append(inventory[i].getItemID());
+    sprintf(number,"%i", inventory[i].getItemID());
+    data.append(number, 3);
   }
   for (int i = 0; i < 15; i++)
   {
@@ -209,47 +237,57 @@ void Player::loadPlayerData()
   if( file.open("/userdata/player.dat" , ASGE::FILEIO::File::IOMode::READ))
   {
     using Buffer = ASGE::FILEIO::IOBuffer;
-    Buffer buffer = file.read();
-    char* p_end;
-    number_clues_found = strtol(buffer.as_char(), &p_end, -1);
+    Buffer buffer;
+    number_clues_found = atoi(buffer.data.get());
     for (int i = 0; i < number_clues_found; i++)
     {
-      clues_found[i] = strtol(buffer.as_char(), &p_end, -1);
+      buffer = file.read();
+      file.seek(sizeof(int));
+      clues_found[i] =  atoi(buffer.data.get());
     }
-    number_puzzles_solved =  strtol(buffer.as_char(), &p_end, -1);
+    number_puzzles_solved =  atoi(buffer.data.get());
     for (int i = 0; i < number_puzzles_solved; i++)
     {
-      puzzles_solved[i] =  strtol(buffer.data.get(), &p_end, -1);
+      buffer = file.read();
+      file.seek(sizeof(int));
+      puzzles_solved[i] =   atoi(buffer.data.get());
     }
 
-    direction =  strtol(buffer.as_char(), &p_end, -1);
-    moving =  static_cast<bool>(strtol(buffer.as_char(), &p_end, 1));
-    sprite_index =  strtol(buffer.as_char(), &p_end, -1);
+    buffer = file.read();
+    file.seek(sizeof(int));
+    direction =   atoi(buffer.data.get());
+    buffer = file.read();
+    file.seek(sizeof(bool));
+    moving =  static_cast<bool>( atoi(buffer.data.get()));
+    buffer = file.read();
+    file.seek(sizeof(int));
+    sprite_index =   atoi(buffer.data.get());
     for (int i = 0; i < 15; i++)
     {
+      buffer = file.read();
+      file.seek(sizeof(int));
       GameObject new_gameobject;
       new_gameobject.setMySpriteId(
-          strtol(buffer.as_char(), &p_end, -1));
+          atoi(buffer.as_char()));
       inventory[i].setMyGameObject(new_gameobject);
     }
     for (int i = 0; i < 15; i++)
     {
-      inventory[i].setItemID(strtol(buffer.as_char(), &p_end, -1));
+      buffer = file.read();
+      file.seek(sizeof(int));
+      inventory[i].setItemID(  atoi(buffer.data.get()));
     }
+    file.seek(sizeof(std::string));
     for (int i = 0; i < 15; i++)
     {
-      inventory[i].setItemName(static_cast<std::string>(buffer.as_char()));
-      inventory[i].setItemDescription(static_cast<std::string>(buffer.as_char()));
+      buffer = file.read();
+      file.seek(sizeof(std::string));
+      inventory[i].setItemName(static_cast<std::string>(buffer.data.get()));
+      buffer = file.read();
+      inventory[i].setItemDescription(static_cast<std::string>(buffer.data.get()));
     }
   }
-
   file.close();
-
-
-
-
-
-
 }
 
 void Player::movePlayer(double animation_counter)
@@ -260,11 +298,11 @@ void Player::movePlayer(double animation_counter)
     {
       switch(direction)
       {
-        case SOUTH:
-          if (sprite_index + 1 > 3 ||
-              sprite_index + 1 < 0)
+        case NORTH:
+          if (sprite_index + 1 > 15 ||
+              sprite_index + 1 < 12)
           {
-            sprite_index = 0;
+            sprite_index = 12;
           }
           else
           {
@@ -282,11 +320,11 @@ void Player::movePlayer(double animation_counter)
             sprite_index += 1;
           }
           break;
-        case NORTH:
-          if (sprite_index + 1 > 15 ||
-              sprite_index + 1 < 12)
+        case SOUTH:
+          if (sprite_index + 1 > 3 ||
+              sprite_index + 1 < 0)
           {
-            sprite_index = 12;
+            sprite_index = 0;
           }
           else
           {
@@ -311,26 +349,23 @@ void Player::movePlayer(double animation_counter)
   }
   else
   {
-    if (sprite_index > 0 && sprite_index < 4)
+    switch(direction)
     {
-      sprite_index = 0;
-      player_gameobject.setMySpriteId(sprite_index);
+      case NORTH:
+          sprite_index = 12;
+        break;
+      case EAST:
+          sprite_index = 8;
+        break;
+      case SOUTH:
+          sprite_index = 0;
+        break;
+      case WEST:
+          sprite_index = 4;
+        break;
     }
-    else if (sprite_index > 4 && sprite_index < 8)
-    {
-      sprite_index = 4;
-      player_gameobject.setMySpriteId(sprite_index);
-    }
-    else if (sprite_index > 8 && sprite_index < 12)
-    {
-      sprite_index = 8;
-      player_gameobject.setMySpriteId(sprite_index);
-    }
-    else if (sprite_index > 12 && sprite_index < 16)
-    {
-      sprite_index = 12;
-      player_gameobject.setMySpriteId(sprite_index);
-    }
+    player_gameobject.setMySpriteId(sprite_index);
+
   }
 }
 

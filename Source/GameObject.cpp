@@ -46,23 +46,33 @@ bool GameObject::isBetween(float value, float min, float max) const
 }
 
 
-bool GameObject::collisionCheck(Point2D player_location, int player_direction)
+bool GameObject::collisionCheck(Point2D player_location, int player_direction,
+                                bool double_distance)
 {
+  float distance = 0.0f;
   bool colliding = false;
+  if(double_distance)
+  {
+    distance += GRID_SIZE;
+  }
   switch(player_direction)
   {
     case NORTH :
 
-      if (isInside(player_location.x + (GRID_SIZE * 0.005f) ,player_location.y - (GRID_SIZE * 0.005f))
-          && isInside(player_location.x - (GRID_SIZE * 0.005f) ,player_location.y - (GRID_SIZE * 0.005f)))
+      if (isInside(player_location.x + (GRID_SIZE * DISTANCE_CHECK) ,
+                   player_location.y  - distance - (GRID_SIZE * DISTANCE_CHECK))
+          && isInside(player_location.x - (GRID_SIZE * DISTANCE_CHECK) ,
+                      player_location.y - distance - (GRID_SIZE * DISTANCE_CHECK)))
       {
         colliding = true;
       }
       break;
     case EAST :
 
-      if (isInside(player_location.x + (GRID_SIZE * 0.005f),player_location.y+(GRID_SIZE * 0.005f))
-          && isInside(player_location.x + (GRID_SIZE * 0.005f) ,player_location.y - (GRID_SIZE * 0.005f)))
+      if (isInside(player_location.x + distance + (GRID_SIZE * DISTANCE_CHECK),
+                   player_location.y + (GRID_SIZE * DISTANCE_CHECK))
+          && isInside(player_location.x + distance + (GRID_SIZE * DISTANCE_CHECK),
+                      player_location.y  - (GRID_SIZE * 0.005f)))
       {
         colliding = true;
       }
@@ -70,16 +80,20 @@ bool GameObject::collisionCheck(Point2D player_location, int player_direction)
 
     case SOUTH :
 
-      if (isInside(player_location.x + (GRID_SIZE * 0.005f) ,player_location.y +(GRID_SIZE * 0.005f))
-          && isInside(player_location.x - (GRID_SIZE * 0.005f) ,player_location.y + (GRID_SIZE * 0.005f)))
+      if (isInside(player_location.x + (GRID_SIZE * DISTANCE_CHECK) ,
+                   player_location.y + distance +(GRID_SIZE * DISTANCE_CHECK))
+          && isInside(player_location.x - (GRID_SIZE * DISTANCE_CHECK) ,
+                      player_location.y + distance + (GRID_SIZE *DISTANCE_CHECK)))
       {
         colliding = true;
       }
       break;
     case WEST :
 
-      if (isInside(player_location.x - (GRID_SIZE * 0.005f) ,player_location.y+(GRID_SIZE * 0.005f))
-          && isInside(player_location.x - (GRID_SIZE * 0.005f) ,player_location.y - (GRID_SIZE * 0.005f)))
+      if (isInside(player_location.x - distance - (GRID_SIZE * DISTANCE_CHECK) ,
+                   player_location.y+(GRID_SIZE * DISTANCE_CHECK))
+          && isInside(player_location.x - distance - (GRID_SIZE * DISTANCE_CHECK) ,
+                      player_location.y - (GRID_SIZE * DISTANCE_CHECK)))
       {
         colliding = true;
       }
