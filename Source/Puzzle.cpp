@@ -60,6 +60,10 @@ int Puzzle::getRequiredItemID() const
   return required_item_id;
 }
 
+int Puzzle::getRequiredClueID() const
+{
+  return required_clue_id;
+}
 int Puzzle::getNumberMovables() const
 {
   return number_movables;
@@ -84,13 +88,18 @@ void Puzzle::setRequiredItemID(int new_required_item_id)
 {
   required_item_id = new_required_item_id;
 }
+void Puzzle::setRequiredClueID(int new_required_clue_id)
+{
+  required_clue_id = new_required_clue_id;
+}
 
-bool Puzzle::checkPuzzleCompleted(Player* player, bool power_on)
+bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
 {
   bool puzzle_completed = false;
   bool switches_completed = false;
   bool movables_completed = false;
   bool required_item_completed = false;
+  bool required_clue_completed = false;
 
   if (number_switches == 0)
   {
@@ -107,7 +116,7 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool power_on)
       }
     }
   }
-  if (number_movables == 0)
+  if (number_movables == 0 || puzzle_id == 7)
   {
     movables_completed = true;
   }
@@ -141,11 +150,26 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool power_on)
       }
     }
   }
-
-
-  if(switches_completed && movables_completed && required_item_completed)
+  if (required_clue_id == -1)
   {
-    if((power_required && power_on == true) || !power_required)
+    required_clue_completed = true;
+  }
+  else if (required_clue_id > -1)
+  {
+    for (int i = 0; i < player->getNumberCluesFound(); i++)
+    {
+      if(player->getCluesFound()[i] == required_clue_id)
+      {
+        required_clue_completed = true;
+      }
+    }
+  }
+
+
+  if(switches_completed && movables_completed && required_item_completed &&
+      required_clue_completed)
+  {
+    if((power_required && *power_on) || !power_required)
     {
       player->setNumberPuzzlesSolved(player->getNumberPuzzlesSolved() + 1);
 

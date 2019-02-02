@@ -21,6 +21,7 @@ class Player
   void setPlayerGameobject( GameObject player_gameobject);
   Item getInventory(int index) ;
   void addToInventory(Item new_item, int index) ;
+  void addToClues(int new_clue, int index) ;
   int* getCluesFound() ;
   void setCluesFound(int* clues_found);
   int* getPuzzlesSolved() ;
@@ -39,6 +40,7 @@ class Player
   void loadPlayerData();
   void movePlayer(double animation_counter);
   void setupPlayer();
+  int getClueFound(int index);
 
 
  private:

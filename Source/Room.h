@@ -47,7 +47,8 @@ class Room
   bool checkCollisions(Player* player, bool add_item_check);
   bool checkMovableCollisions(Player* player, bool add_item_check);
   void resetRoomPosition(Point2D distance);
-  bool checkForInteractables(Player* player, std::string* text_to_display);
+  bool checkForInteractables(Player* player, std::string* text_to_display,
+                             bool* power_on);
   void checkExits(Player* player, std::string* text_to_display,
                         int* game_state, bool power_on, int* exit_check);
 

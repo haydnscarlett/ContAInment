@@ -77,10 +77,24 @@ void Player::addToInventory(Item new_item, int index)
 {
   inventory[index] = new_item;
 }
+void Player::addToClues(int new_clue, int index)
+{
+  int* tmp;
+  tmp  = new int[number_clues_found];
+    memcpy(tmp, clues_found, number_clues_found * sizeof(int));
+  number_clues_found++;
+  clues_found = new int[number_clues_found];
+    memcpy(clues_found, tmp, number_clues_found * sizeof(int));
+  clues_found[index] = new_clue;
+}
 
 int* Player::getCluesFound()
 {
   return clues_found;
+}
+int Player::getClueFound(int index)
+{
+  return clues_found[index];
 }
 
 void Player::setCluesFound(int* new_clues_found)
