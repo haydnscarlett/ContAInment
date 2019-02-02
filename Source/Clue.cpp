@@ -41,9 +41,10 @@ bool Clue::addClueToPlayer(int* clues_found, int index)
   }
   if (!already_found)
   {
-    return true;
+    clues_found = new int[index];
+    clues_found[index - 1] = clue_id;
   }
-  return false;
+  return already_found;
 }
 
 Clue::~Clue()
