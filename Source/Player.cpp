@@ -77,24 +77,6 @@ void Player::addToInventory(Item new_item, int index)
 {
   inventory[index] = new_item;
 }
-void Player::addToClues(int new_clue, int index)
-{
-  int* tmp;
-  tmp = new int[number_clues_found];
-  for (int i = 0; i < number_clues_found - 1; i++)
-  {
-    tmp[i]=clues_found[i];
-
-  }
-  number_clues_found++;
-  clues_found = new int[number_clues_found];
-  for (int i = 0; i < number_clues_found - 1; i++)
-  {
-    clues_found[i]=tmp[i];
-
-  }
-  clues_found[index] = new_clue;
-}
 
 int* Player::getCluesFound()
 {
