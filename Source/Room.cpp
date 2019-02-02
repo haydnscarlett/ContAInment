@@ -479,7 +479,8 @@ bool Room::checkCollisions(Player* player, bool add_item_check)
   return colliding;
 }
 
-bool Room::checkForInteractables(Player* player, std::string* text_to_display)
+bool Room::checkForInteractables(Player* player, std::string* text_to_display,
+                                 bool* power_on)
 {
   bool colliding = false;
 
@@ -490,10 +491,10 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display)
         player->getPlayerGameobject().getMyLocation(), player->getDirection(),
         false))
     {
-      if(my_clues[i].addClueToPlayer(player->getCluesFound(),
+       if(my_clues[i].addClueToPlayer(player->getCluesFound(),
                                      player->getNumberCluesFound()))
       {
-        player->setNumberCluesFound(player->getNumberCluesFound() + 1);
+        player->addToClues(my_clues[i].getClueID(), player->getNumberCluesFound());
       }
       *text_to_display = my_clues[i].getItemDescription();
       colliding = true;
@@ -510,15 +511,41 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display)
       {
          if (player->getInventory(j).getItemID() == -1 && !item_added)
         {
-          Item new_item = my_items[i].addItemToInventory();
-          *text_to_display = my_items[i].getItemDescription();
-          player->addToInventory(new_item, j);
-          removeItem(my_items[i].getItemID());
-          j = 15;
-          item_added = true;
-          colliding = true;
+          if(my_items[i].getItemID() == 7)
+          {
+            for(int k = 0; k < player->getNumberCluesFound(); k++)
+            {
+              if (player->getCluesFound()[k] == 2)
+              {
+                Item new_item = my_items[i].addItemToInventory();
+                *text_to_display = my_items[i].getItemDescription();
+                player->addToInventory(new_item, j);
+                removeItem(my_items[i].getItemID());
+                j = 15;
+                i = number_of_items;
+                item_added = true;
+                colliding = true;
+              }
+            }
+            if (!item_added)
+            {
+              *text_to_display = "You do not know the code.";
+              colliding = true;
+            }
+
+          }
+          else
+          {
+            Item new_item = my_items[i].addItemToInventory();
+            *text_to_display = my_items[i].getItemDescription();
+            player->addToInventory(new_item, j);
+            removeItem(my_items[i].getItemID());
+            j = 15;
+            item_added = true;
+            colliding = true;
+          }
         }
-        if (j == 14 && !item_added)
+        if (j == 14 && !item_added && !colliding)
         {
           *text_to_display = "Inventory full. Please drop something first.";
           colliding = true;
@@ -534,7 +561,15 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display)
         false))
     {
       my_puzzle.getMySwitches()[i].setOn(!my_puzzle.getMySwitches()[i].isOn());
+
     }
+  }
+   if(my_puzzle.checkPuzzleCompleted(player, power_on) && !*power_on &&
+      room_id == REACTOR)
+  {
+    *power_on = true;
+    *text_to_display = my_puzzle.getPuzzleSolvedMessage();
+    colliding = true;
   }
   return colliding;
 }
@@ -663,7 +698,7 @@ void Room::checkExits(Player* player, std::string* text_to_display,
           player->getPlayerGameobject().getMyLocation(), player->getDirection(),
           false))
       {
-        if(my_puzzle.checkPuzzleCompleted(player, power_on))
+        if(my_puzzle.checkPuzzleCompleted(player, &power_on))
         {
           for (int j =0; j < my_puzzle.getNumberLinkedExits(); j++)
           {
