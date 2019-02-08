@@ -13,7 +13,6 @@ class GameObject
   public:
   GameObject();
   GameObject(int my_sprite_id, Point2D location);
-  virtual ~GameObject();
   Point2D getMyLocation();
   void setMyLocation(Point2D new_location);
   bool isBetween(float value, float min, float max) const;

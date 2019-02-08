@@ -10,15 +10,9 @@ class Item
 {
   public:
   Item();
-  Item(GameObject new_gameobject, int new_item_id,
-      std::string new_item_description, std::string new_item_name);
-  virtual ~Item();
+  Item(GameObject new_gameobject, int new_item_id);
   GameObject getMyGameObject();
   void setMyGameObject(GameObject new_gameobject);
-  std::string getItemDescription();
-  void setItemDescription(std::string new_item_description);
-  std::string getItemName();
-  void setItemName(std::string new_item_name);
   int getItemID();
   void setItemID(int new_item_id);
   Item addItemToInventory();
@@ -26,8 +20,6 @@ class Item
   private:
   GameObject my_gameobject;
   int item_id;
-  std::string item_description;
-  std::string item_name;
 };
 
 #endif // EXMACHINA_ITEM_H

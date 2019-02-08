@@ -14,7 +14,6 @@
 class Room
 {
  public:
-  virtual ~Room();
   GameObject* getMyBackground() ;
   void setMyBackground(GameObject* new_background);
   GameObject* getMyForeground() ;
@@ -26,7 +25,7 @@ class Room
   Item* getMyItems() ;
   void setMyItems(Item* new_items);
   Puzzle getMyPuzzle() ;
-  void setMyPuzzle(Puzzle new_puzzle);
+  void setMyPuzzle(const Puzzle &new_puzzle);
   int getRoomID();
   void setRoomID(int new_id);
   Exit* getMyExits();
@@ -51,6 +50,10 @@ class Room
                              bool* power_on);
   void checkExits(Player* player, std::string* text_to_display,
                         int* game_state, bool power_on, int* exit_check);
+  void saveRoom();
+  void loadRoom();
+  void setupFloorStandard();
+  void setupWalls();
 
  private:
   GameObject* my_background;

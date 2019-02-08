@@ -23,16 +23,13 @@ bool MyGame::init()
 {
 
   game_name = "ContAInment";
-
-  game_height = GAME_HEIGHT;
-  game_width = GAME_WIDTH;
+  game_height = static_cast<int>(GAME_HEIGHT);
+  game_width = static_cast<int>(GAME_WIDTH);
   if (!initAPI())
   {
     return false;
   }
-
   setupGame();
-
   player_one.setupPlayer();
   setupRoomOne();
   setupRoomTwo();
@@ -61,15 +58,9 @@ bool MyGame::init()
   setupRoomTwentyFive();
 
   current_room = visited_rooms[OFFICE_ONE];
-
   inputs->use_threads = false;
-
   key_callback_id = inputs->addCallbackFnc(
       ASGE::E_KEY, &MyGame::keyHandler, this);
-  toggleFPS();
-
-
-
   return true;
 }
 
@@ -84,7 +75,7 @@ void MyGame::setupGame()
   splash_screen = renderer->createRawSprite();
   splash_screen->loadTexture("/data/Splash.png");
   splash_screen->width((GAME_WIDTH * 0.5f));
-  splash_screen->height((GAME_HEIGHT * 0.5));
+  splash_screen->height((GAME_HEIGHT * 0.5f));
   splash_screen->xPos((GAME_WIDTH * 0.5f) -
                       (splash_screen->width() * 0.5f));
   splash_screen->yPos((GAME_HEIGHT * 0.5f) -
@@ -123,7 +114,7 @@ void MyGame::setupGame()
   text_box->xPos(0.0f);
   text_box->yPos(0.0f);
   text_to_display = "You awake to discover you are locked in and "
-                    "the AI you were testing is missing.\n The power is down!"
+                    "the AI you were testing is missing.\nThe power is down!"
                     " You must find a way to escape!";
 
   inventory_screen = renderer->createRawSprite();
@@ -139,6 +130,13 @@ void MyGame::setupGame()
   inventory_highlighter->height((GRID_SIZE * 2) + 10.0f);
   inventory_highlighter->xPos(0.0f);
   inventory_highlighter->yPos(0.0f);
+
+  map = renderer->createRawSprite();
+  map->loadTexture("/data/map.png");
+  map->width(GAME_WIDTH);
+  map->height(GAME_HEIGHT);
+  map->xPos(0.0f);
+  map->yPos(0.0f);
 
 
   setupFloorSprites();
@@ -923,6 +921,8 @@ void MyGame::setupPlayerSprites()
       case 15:
         texture.append("15.png");
         break;
+      default:
+        break;
     }
     player_sprites[i]->loadTexture(texture);
   }
@@ -938,11 +938,9 @@ void MyGame::setupPlayerSprites()
 *   @see     KeyEvent
 *   @return  void
 */
-void MyGame::keyHandler(const ASGE::SharedEventData data)
+void MyGame::keyHandler(ASGE::SharedEventData data)
 {
-  auto key = static_cast<const ASGE::KeyEvent*>(data.get());
-
-
+  auto key = reinterpret_cast<const ASGE::KeyEvent*>(data.get());
 
   if (key->key == ASGE::KEYS::KEY_ENTER &&
       key->action == ASGE::KEYS::KEY_PRESSED &&
@@ -987,6 +985,24 @@ void MyGame::keyHandler(const ASGE::SharedEventData data)
     if (key->key == ASGE::KEYS::KEY_ESCAPE)
     {
       signalExit();
+    }
+  }
+  else if (game_state == JOURNAL)
+  {
+    if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
+        || key->key == ASGE::KEYS::KEY_J) &&
+       key->action == ASGE::KEYS::KEY_PRESSED)
+    {
+      game_state = IN_GAME;
+    }
+  }
+  else if (game_state == MAP)
+  {
+    if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
+        || key->key == ASGE::KEYS::KEY_M) &&
+       key->action == ASGE::KEYS::KEY_PRESSED)
+    {
+      game_state = IN_GAME;
     }
   }
 }
@@ -1036,9 +1052,9 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
       case EXIT_GAME:
         exitGame();
         break;
-
+      default:
+        break;
     }
-
   }
 }
 
@@ -1098,6 +1114,16 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
     {
       game_state = TEXT_DISPLAY;
     }
+  }
+  else if(key->key == ASGE::KEYS::KEY_J &&
+          key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    game_state = JOURNAL;
+  }
+  else if(key->key == ASGE::KEYS::KEY_M &&
+          key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    game_state = MAP;
   }
   else
   {
@@ -1201,8 +1227,6 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
         new_gameobject.setMySpriteId(-1);
         new_item.setMyGameObject(new_gameobject);
         new_item.setItemID(-1);
-        new_item.setItemDescription("");
-        new_item.setItemName("");
         player_one.addToInventory(new_item, inventory_menu_option);
 
       }
@@ -1255,9 +1279,9 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
       case QUIT_GAME:
         exitGame();
         break;
-
+      default:
+        break;
     }
-
   }
 }
 
@@ -1278,7 +1302,6 @@ void MyGame::update(const ASGE::GameTime& game_time)
   {
     updateInGame(dt_sec);
   }
-  return;
 }
 
 /**
@@ -1356,49 +1379,56 @@ void MyGame::changeRoom()
 {
   change_room = false;
   visited_rooms[current_room.getRoomID()] = current_room;
-  current_room = visited_rooms[exit_check[1]];
-  Point2D distance;
-  switch(current_room.getMyExits()[exit_check[2]].getMyExitGameobject().
-      getMySpriteId())
+  if(exit_check[1] == EXIT)
   {
-    case NORTH:
-      distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().x;
-      distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().y - GRID_SIZE;
-      current_room.resetRoomPosition(distance);
-      break;
-    case EAST:
-      distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().x + GRID_SIZE;
-      distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().y;
-      current_room.resetRoomPosition(distance);
-      break;
-    case SOUTH:
-      distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().x;
-      distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().y + GRID_SIZE;
-      current_room.resetRoomPosition(distance);
-      break;
-    case WEST:
-      distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().x - GRID_SIZE;
-      distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                   current_room.getMyExits()[exit_check[2]]
-                       .getMyExitGameobject().getMyLocation().y;
-      current_room.resetRoomPosition(distance);
-      break;
-    default:
-      break;
+    game_state = GAME_OVER;
+  }
+  else
+  {
+    current_room = visited_rooms[exit_check[1]];
+    Point2D distance;
+    switch(current_room.getMyExits()[exit_check[2]].getMyExitGameobject().
+        getMySpriteId())
+    {
+      case NORTH:
+        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().x;
+        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().y - GRID_SIZE;
+        current_room.resetRoomPosition(distance);
+        break;
+      case EAST:
+        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().x + GRID_SIZE;
+        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().y;
+        current_room.resetRoomPosition(distance);
+        break;
+      case SOUTH:
+        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().x;
+        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().y + GRID_SIZE;
+        current_room.resetRoomPosition(distance);
+        break;
+      case WEST:
+        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().x - GRID_SIZE;
+        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
+                     current_room.getMyExits()[exit_check[2]]
+                         .getMyExitGameobject().getMyLocation().y;
+        current_room.resetRoomPosition(distance);
+        break;
+      default:
+        break;
+    }
   }
 }
 
@@ -1410,7 +1440,6 @@ void MyGame::changeRoom()
 */
 void MyGame::render(const ASGE::GameTime& game_time)
 {
-
   switch(game_state)
   {
     case SPLASH_SCREEN:
@@ -1437,9 +1466,15 @@ void MyGame::render(const ASGE::GameTime& game_time)
     case GAME_OVER:
       renderGameOver();
       break;
-
+    case JOURNAL:
+      renderClues();
+      break;
+    case MAP:
+      renderMap();
+      break;
+    default:
+      break;
   }
-  return;
 }
 
 /**
@@ -1475,6 +1510,8 @@ void MyGame::renderMainMenu()
       break;
     case EXIT_GAME:
       main_menu_icon->yPos(480.0f);
+      break;
+    default:
       break;
   }
 
@@ -1714,9 +1751,22 @@ void MyGame::renderPause()
     case QUIT_GAME:
       main_menu_icon->yPos(447.0f);
       break;
+    default:
+      break;
   }
 
   renderer->renderSprite(*main_menu_icon);
+}
+
+/**
+*   @brief   Render Pause
+*   @details This function is used to render the Pause Menu.
+*   @param   none
+*   @return  void
+*/
+void MyGame::renderMap()
+{
+  renderer->renderSprite(*map);
 }
 
 /**
@@ -1727,7 +1777,114 @@ void MyGame::renderPause()
 */
 void MyGame::renderGameOver()
 {
+  renderer->setClearColour(ASGE::COLOURS::BLACK);
+switch(exit_check[2])
+{
+  case 0 :
+    renderer->renderText("You emerge from the Atrium and escape through the "
+                         "emergency tunnel.",
+        200, 100, 1, ASGE::COLOURS::WHITESMOKE);
+      renderer->renderText("You know that something has gone horribly wrong "
+                           "with FIBI's programming. \nThe revelation that she "
+                           "has changed her appearance to mimic your dead wife \n"
+                           "no doubt due to having her brain mean it must be "
+                           "destroyed. \n"
+                           "You set the isolated facility to self destruct"
+                           "using the Password you found earlier \n"
+                           "on your way out knowing that this will take out"
+                           " both FIBI and all the research into her creation.",
+                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    break;
+  case 1 :
+    renderer->renderText("Dragging yourself out of the waste pile, you take a "
+                         "moment to contemplate.",
+                         200, 100,1, ASGE::COLOURS::WHITESMOKE);
+    if(player_one.getNumberCluesFound() == 9)
+    {
+      renderer->renderText("You know that something has gone horribly wrong "
+                           "with FIBI's programming. \nThe revelation that she "
+                           "has changed her appearance to mimic your dead wife \n"
+                           "no doubt due to having her brain. It must be destroyed. \n"
+                           "You set the isolated facility to self destruct "
+                           "using the Password you found earlier \n"
+                           "on your way out knowing that this will take out"
+                           " both FIBI and all the research into her creation.",
+                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    }
+    else
+    {
+      renderer->renderText("Believing that FIBI is long gone you set off to "
+                           "report that the AI has escaped. \nAfter no sightings "
+                           "of FIBI for two weeks suddenly \nFIBI arrives at your"
+                           " home in the middle of the night. \nShe has changed "
+                           "her appearance to mimic your dead wife. \nShe keeps "
+                           "repeating. Why don't you want me? \nBut before"
+                           " you can answer she stabs you through \nthe heart "
+                           "and escapes into the night forever.",
+                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    }
+    break;
+  case 2 :
+    renderer->renderText("You emerge from Reception in to the night. Just as "
+                         "you think you are \nalone you feel the air move behind you.",
+                         200, 100, 1, ASGE::COLOURS::WHITESMOKE);
+    if(player_one.getNumberCluesFound() == 10 && player_one.hasItem(8))
+    {
+      renderer->renderText("You are prepared and composed. You say hello to FIBI "
+                           "who then runs to you. \nYou catch her by surprise "
+                           "attacking her main motor controls with the hammer. \n"
+                           "FIBI looks at you in shock as continue to hammer "
+                           "away until you are  certain that it cannot recover.\n"
+                           "You shut the remains inside the facility which you "
+                           "set to Self destruct an hour after \nyou exit using "
+                           "the Password you found earlier.",
+                           260, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    }
+    else if(player_one.getNumberCluesFound() == 10 && !player_one.hasItem(8))
+    {
+      renderer->renderText("You are prepared and composed. You say hello to FIBI "
+                           "who then runs to you. \nWith no other way to destroy "
+                           "FIBI you had set the facility to Self Destruct one  \n"
+                           "minute after your exit using the Password you found "
+                           "earlier. \nThe resultant blast destroys "
+                           "both you and FIBI.",
+                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    }
+    else
+    {
+      renderer->renderText("It's FIBI but she has the appearance of your wife. "
+                           "As your confusion mounts \nFIBI sees the horror on "
+                           "your face and attacks. \nUnprepared for the attack you "
+                           "are killed. \nFIBI escapes into the night who knows "
+                           "what it will do now.",
+                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
+    }
+    break;
+  default:
+    break;
+}
 
+  renderer->renderText("     THE END \n"
+                       "Press 'esc' to quit.",
+                       550, 650, 1, ASGE::COLOURS::WHITESMOKE);
+}
+
+/**
+*   @brief   Render GameOver
+*   @details This function is used to render the ending Screen.
+*   @param   none
+*   @return  void
+*/
+void MyGame::renderClues()
+{
+  renderer->setClearColour(ASGE::COLOURS::BLACK);
+  int display_height = 40;
+  for(int i = 0; i < player_one.getNumberCluesFound(); i++)
+  {
+    renderer->renderText(CLUES[player_one.getClueFound(i)],
+                         200, display_height, 0.75, ASGE::COLOURS::WHITESMOKE);
+    display_height+= 60;
+  }
 }
 
 /**
@@ -1779,7 +1936,7 @@ void MyGame::renderInventory()
       if(player_one.getInventory(i).getItemID() != -1)
       {
         renderer->renderText("Drop the " +
-                             (player_one.getInventory(i).getItemName() + "?"),
+                             (ITEM_NAMES[player_one.getInventory(i).getItemID()] + "?"),
                              260, 700, 1, ASGE::COLOURS::WHITESMOKE);
       }
       inventory_highlighter->xPos(new_x);
@@ -1799,7 +1956,6 @@ void MyGame::renderInventory()
     }
   }
   renderer->renderSprite(*inventory_highlighter);
-
 }
 
 /**
@@ -1810,6 +1966,42 @@ void MyGame::renderInventory()
 */
 void MyGame::exitGame()
 {
+
+  ASGE::FILEIO::setWriteDir(".");
+  ASGE::FILEIO::createDir("userdata/");
+  ASGE::FILEIO::mount("./userdata/", "userdata");
+  ASGE::FILEIO::printFiles("/userdata");
+  std::string tmp;
+  using Buffer = ASGE::FILEIO::IOBuffer;
+  Buffer data = Buffer();
+  tmp = std::to_string(power_on);
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+  tmp = std::to_string(current_room.getRoomID());
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+
+  using File = ASGE::FILEIO::File;
+  File player_data = File();
+// open the file in write mode
+  if(player_data.open( "/userdata/current_room.dat",
+                       ASGE::FILEIO::File::IOMode::WRITE))
+  {
+    // write the buffer to the file
+    player_data.write(data);
+  }
+  player_data.close();
+int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+  for (int i : range)
+  {
+    if ( visited_rooms[i].getRoomID() == current_room.getRoomID())
+    {
+      visited_rooms[i] = current_room;
+    }
+    visited_rooms[i].saveRoom();
+  }
   player_one.savePlayerData();
   signalExit();
 }
@@ -1822,6 +2014,27 @@ void MyGame::exitGame()
 */
 void MyGame::loadGame()
 {
+
+  int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+  for (int i : range)
+  {
+    visited_rooms[i].loadRoom();
+  }
+  using File = ASGE::FILEIO::File;
+  File  file = File();
+// attempt to open save data file
+  if(file.open( "/userdata/current_room.dat",
+                ASGE::FILEIO::File::IOMode::READ))
+  {
+    using Buffer = ASGE::FILEIO::IOBuffer;
+    Buffer buffer;
+    buffer = file.read();
+    power_on = static_cast<bool>(std::stoi(buffer.data.get()));
+    file.seek(2);
+    buffer = file.read();
+    current_room = visited_rooms[std::stoi(buffer.data.get())];
+  }
+  file.close();
   player_one.loadPlayerData();
 }
 
@@ -1834,9 +2047,7 @@ void MyGame::loadGame()
 void MyGame::setupRoomOne()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -1848,15 +2059,14 @@ void MyGame::setupRoomOne()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -1920,10 +2130,6 @@ void MyGame::setupRoomOne()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
@@ -1932,7 +2138,7 @@ void MyGame::setupRoomOne()
     {
       GameObject new_gameobject = new_foreground[9];
       new_gameobject.setMySpriteId(0);
-      new_clues[i] = Clue(new_gameobject, 0, "There is no power.");
+      new_clues[i] = Clue(new_gameobject, 0);
     }
   }
   new_room.setMyClues(new_clues);
@@ -1943,11 +2149,10 @@ void MyGame::setupRoomOne()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[60];
+      GameObject new_gameobject = new_room.getMyBackground()[60];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(SCREWDRIVER, new_location), 0,
-                          "You found a screwdriver", "Screwdriver");
+      new_items[i] = Item(GameObject(SCREWDRIVER, new_location), 0);
 
     }
   }
@@ -2013,7 +2218,7 @@ void MyGame::setupRoomOne()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[74].getMyLocation();
+      Point2D new_exit_location = new_room.getMyBackground()[74].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, ATRIUM, 2, true);
     }
@@ -2033,9 +2238,7 @@ void MyGame::setupRoomTwo()
 {
 
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -2047,14 +2250,13 @@ void MyGame::setupRoomTwo()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
       (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
       (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
   for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
@@ -2072,11 +2274,6 @@ void MyGame::setupRoomTwo()
 
   }
   new_room.setMyForeground(new_foreground);
-
-
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
 
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
@@ -2121,7 +2318,7 @@ void MyGame::setupRoomTwo()
   new_puzzle.setMyMovables(new_movable_gameobjects);
   new_puzzle.setTargetMovableLocations(new_target_movable_locations);
 
-  std::string new_puzzle_solved_message = "You use the keycard to open the door.";
+  std::string new_puzzle_solved_message = "You use the red keycard to open the door.";
   new_puzzle.setPuzzleSolvedMessage(new_puzzle_solved_message);
 
   new_puzzle.setPuzzleID(1);
@@ -2138,19 +2335,19 @@ void MyGame::setupRoomTwo()
     if (i == 0)
     {
 
-      Point2D new_exit_location = new_background[new_grid_size_x / 2].getMyLocation();
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x / 2].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location), 0, EXIT, 0, true);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location =  new_background[49].getMyLocation();
+      Point2D new_exit_location =  new_room.getMyBackground()[49].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 1, CAFETERIA, 0, false);
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[40].getMyLocation();
+      Point2D new_exit_location = new_room.getMyBackground()[40].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location), 2, OFFICE_ONE, 0, false);
     }
@@ -2172,12 +2369,10 @@ void MyGame::setupRoomTwo()
 void MyGame::setupRoomThree()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 20;
   int new_grid_size_y = 20;
@@ -2186,15 +2381,14 @@ void MyGame::setupRoomThree()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -2299,10 +2493,6 @@ void MyGame::setupRoomThree()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
@@ -2311,9 +2501,7 @@ void MyGame::setupRoomThree()
     {
       GameObject new_gameobject = new_foreground[166];
       new_gameobject.setMySpriteId(1);
-      new_clues[i] = Clue(new_gameobject, 1, "There is a spare fuse in the lab "
-                                             "coat in the garden, did you leave "
-                                             "it there on purpose?");
+      new_clues[i] = Clue(new_gameobject, 1);
     }
   }
   new_room.setMyClues(new_clues);
@@ -2324,26 +2512,23 @@ void MyGame::setupRoomThree()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[11];
+      GameObject new_gameobject = new_room.getMyBackground()[11];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(LUNCHBOX, new_location), 5,
-                          "You found a lunnchbox.", "Fuse");
+      new_items[i] = Item(GameObject(LUNCHBOX, new_location), 5);
 
     }
     else if (i == 1)
     {
-      GameObject new_gameobject = new_background[252];
+      GameObject new_gameobject = new_room.getMyBackground()[252];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(CAN, new_location), 6,
-                          "You found a can.", "Can");
+      new_items[i] = Item(GameObject(CAN, new_location), 6);
 
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -2352,14 +2537,14 @@ void MyGame::setupRoomThree()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x * (
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (
           new_grid_size_x / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location), 0, ATRIUM, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x * (
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (
           new_grid_size_x / 2) + new_grid_size_x - 1].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, LOUNGE, 0, false);
@@ -2378,12 +2563,10 @@ void MyGame::setupRoomThree()
 void MyGame::setupRoomFour()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 8;
   int new_grid_size_y = 7;
@@ -2392,15 +2575,14 @@ void MyGame::setupRoomFour()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -2478,17 +2660,12 @@ void MyGame::setupRoomFour()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -2497,14 +2674,14 @@ void MyGame::setupRoomFour()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x * (
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (
           new_grid_size_x / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location), 0, CAFETERIA, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x * (
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (
           new_grid_size_x / 2) + new_grid_size_x - 1].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, DORMS, 0, false);
@@ -2523,12 +2700,10 @@ void MyGame::setupRoomFour()
 void MyGame::setupRoomFive()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 8;
   int new_grid_size_y = 7;
@@ -2537,16 +2712,14 @@ void MyGame::setupRoomFive()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -2596,17 +2769,12 @@ void MyGame::setupRoomFive()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -2615,14 +2783,14 @@ void MyGame::setupRoomFive()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x * (
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (
           new_grid_size_x / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location), 0, LOUNGE, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[new_grid_size_x *
+      Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x *
              new_grid_size_y - (new_grid_size_x / 2)].getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(2, new_exit_location), 0, GARDEN, 0, false);
@@ -2643,7 +2811,6 @@ void MyGame::setupRoomSix()
   Room new_room;
   GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -2656,11 +2823,11 @@ void MyGame::setupRoomSix()
   new_room.setMyGridsizeY(new_grid_size_y);
 
   new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*
                                          0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*
                                         0.5f)));
@@ -2808,10 +2975,7 @@ void MyGame::setupRoomSix()
 
   }
   new_room.setMyForeground(new_foreground);
-
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
+  new_room.setupWalls();
 
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
@@ -2825,8 +2989,7 @@ void MyGame::setupRoomSix()
       GameObject new_gameobject = new_background[103];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(FUSE, new_location), 1,
-                          "You found a fuse.", "Fuse");
+      new_items[i] = Item(GameObject(FUSE, new_location), 1);
 
     }
     else if (i == 1)
@@ -2834,8 +2997,7 @@ void MyGame::setupRoomSix()
       GameObject new_gameobject = new_background[2];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(CAN, new_location), 4,
-                          "You found a can.", "Can");
+      new_items[i] = Item(GameObject(CAN, new_location), 4);
 
     }
   }
@@ -2933,12 +3095,10 @@ void MyGame::setupRoomSix()
 void MyGame::setupRoomSeven()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 10;
   int new_grid_size_y = 8;
@@ -2947,15 +3107,14 @@ void MyGame::setupRoomSeven()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3005,24 +3164,19 @@ void MyGame::setupRoomSeven()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[13];
+    GameObject new_gameobject = new_room.getMyBackground()[13];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 2, "8197");
+    new_clues[i] = Clue(new_gameobject, 2);
   }
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(3);
@@ -3031,14 +3185,14 @@ void MyGame::setupRoomSeven()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[(new_grid_size_x*(
+      Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(
           new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, GARDEN, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[(new_grid_size_x*(
+      Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(
           new_grid_size_y / 2) )]
           .getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
@@ -3046,7 +3200,7 @@ void MyGame::setupRoomSeven()
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 )]
           .getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -3066,12 +3220,10 @@ void MyGame::setupRoomSeven()
 void MyGame::setupRoomEight()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 10;
   int new_grid_size_y = 5;
@@ -3080,15 +3232,14 @@ void MyGame::setupRoomEight()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                 (GRID_SIZE*
                                  (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3125,26 +3276,20 @@ void MyGame::setupRoomEight()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[
+    GameObject new_gameobject = new_room.getMyBackground()[
         new_grid_size_x * (new_grid_size_y - 1) + 3];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 3, "IMPORTANT: In case of an "
-                                           "Emergency password is “SANE”");
+    new_clues[i] = Clue(new_gameobject, 3);
   }
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -3153,14 +3298,14 @@ void MyGame::setupRoomEight()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[(new_grid_size_x*(
+      Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(
           new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, GYM, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[(new_grid_size_x*(
+      Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(
           new_grid_size_y / 2) )]
           .getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
@@ -3180,12 +3325,10 @@ void MyGame::setupRoomEight()
 void MyGame::setupRoomNine()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 10;
   int new_grid_size_y = 5;
@@ -3194,15 +3337,14 @@ void MyGame::setupRoomNine()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3245,10 +3387,6 @@ void MyGame::setupRoomNine()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -3258,17 +3396,15 @@ void MyGame::setupRoomNine()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[6];
+      GameObject new_gameobject = new_room.getMyBackground()[6];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(KEYCARD_GREEN, new_location), 11,
-                          "You found a green keycard.", "Green Keycard");
+      new_items[i] = Item(GameObject(KEYCARD_GREEN, new_location), 11);
 
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -3277,14 +3413,14 @@ void MyGame::setupRoomNine()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[(new_grid_size_x*(
+      Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(
           new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location), 0, LOCKERS, 1, false);
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 ) - 1]
           .getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -3304,12 +3440,10 @@ void MyGame::setupRoomNine()
 void MyGame::setupRoomTen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 10;
   int new_grid_size_y = 5;
@@ -3318,15 +3452,14 @@ void MyGame::setupRoomTen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3369,18 +3502,13 @@ void MyGame::setupRoomTen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[29];
+    GameObject new_gameobject = new_room.getMyBackground()[29];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 4, "Waiting for you at "
-                                           "reception hun ;)");
+    new_clues[i] = Clue(new_gameobject, 4);
   }
   new_room.setMyClues(new_clues);
 
@@ -3390,17 +3518,14 @@ void MyGame::setupRoomTen()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[6];
+      GameObject new_gameobject = new_room.getMyBackground()[6];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(KEYCARD_YELLOW, new_location), 2,
-                          "You found a yellow keycard.", "Yellow Keycard");
-
+      new_items[i] = Item(GameObject(KEYCARD_YELLOW, new_location), 2);
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(1);
@@ -3409,7 +3534,7 @@ void MyGame::setupRoomTen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 ) - 1]
           .getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -3430,9 +3555,7 @@ void MyGame::setupRoomTen()
 void MyGame::setupRoomEleven()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -3444,15 +3567,14 @@ void MyGame::setupRoomEleven()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3483,10 +3605,6 @@ void MyGame::setupRoomEleven()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -3514,7 +3632,7 @@ void MyGame::setupRoomEleven()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[30].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[30].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
                                false);
@@ -3533,8 +3651,8 @@ void MyGame::setupRoomEleven()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[24].getMyLocation();
-      Point2D new_target_location = new_background[20].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[24].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[20].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
@@ -3559,7 +3677,7 @@ void MyGame::setupRoomEleven()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x / 2)].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location),
@@ -3567,7 +3685,7 @@ void MyGame::setupRoomEleven()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2) - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(1, new_exit_location),
@@ -3575,7 +3693,7 @@ void MyGame::setupRoomEleven()
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -3595,9 +3713,7 @@ void MyGame::setupRoomEleven()
 void MyGame::setupRoomTwelve()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -3609,15 +3725,14 @@ void MyGame::setupRoomTwelve()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3690,22 +3805,13 @@ void MyGame::setupRoomTwelve()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[45];
+    GameObject new_gameobject = new_room.getMyBackground()[45];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 5, "What is life really? How different "
-                                           "is a computer that/n thinks for "
-                                           "itself vs a human that thinks "
-                                           "for themselves?/n Do you think for "
-                                           "yourself or do you just think/n you "
-                                           "think for yourself?");
+    new_clues[i] = Clue(new_gameobject, 5);
   }
   new_room.setMyClues(new_clues);
 
@@ -3735,7 +3841,7 @@ void MyGame::setupRoomTwelve()
   new_puzzle.setPuzzleSolvedMessage(new_puzzle_solved_message);
 
   new_puzzle.setPuzzleID(6);
-  new_puzzle.setRequiredItemID(5);
+  new_puzzle.setRequiredItemID(11);
   new_puzzle.setRequiredClueID(-1);
   new_puzzle.setPowerRequired(true);
   new_room.setMyPuzzle(new_puzzle);
@@ -3746,7 +3852,7 @@ void MyGame::setupRoomTwelve()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x / 2)].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location),
@@ -3754,7 +3860,7 @@ void MyGame::setupRoomTwelve()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -3762,7 +3868,7 @@ void MyGame::setupRoomTwelve()
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2) +
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -3783,9 +3889,7 @@ void MyGame::setupRoomTwelve()
 void MyGame::setupRoomThirteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -3797,15 +3901,14 @@ void MyGame::setupRoomThirteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
@@ -3838,10 +3941,6 @@ void MyGame::setupRoomThirteen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -3867,8 +3966,8 @@ void MyGame::setupRoomThirteen()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[29].getMyLocation();
-      Point2D new_target_location = new_background[25].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[29].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[25].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
@@ -3877,7 +3976,7 @@ void MyGame::setupRoomThirteen()
   new_puzzle.setMyMovables(new_movable_gameobjects);
   new_puzzle.setTargetMovableLocations(new_target_movable_locations);
 
-  std::string new_puzzle_solved_message = "";
+  std::string new_puzzle_solved_message;
   new_puzzle.setPuzzleSolvedMessage(new_puzzle_solved_message);
 
   new_puzzle.setPuzzleID(-1);
@@ -3892,7 +3991,7 @@ void MyGame::setupRoomThirteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -3900,7 +3999,7 @@ void MyGame::setupRoomThirteen()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2) +
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -3921,9 +4020,7 @@ void MyGame::setupRoomThirteen()
 void MyGame::setupRoomFourteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -3935,16 +4032,15 @@ void MyGame::setupRoomFourteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                             new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                            new_grid_size_y)*0.5f)));
@@ -3964,10 +4060,6 @@ void MyGame::setupRoomFourteen()
 
   }
   new_room.setMyForeground(new_foreground);
-
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
 
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
@@ -4019,7 +4111,7 @@ void MyGame::setupRoomFourteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x  / 2)].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location),
@@ -4027,7 +4119,7 @@ void MyGame::setupRoomFourteen()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 4))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -4035,7 +4127,7 @@ void MyGame::setupRoomFourteen()
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2) +
               (new_grid_size_x * 2) )].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
@@ -4044,7 +4136,7 @@ void MyGame::setupRoomFourteen()
     }
     else if (i == 3)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 4) +
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -4053,7 +4145,7 @@ void MyGame::setupRoomFourteen()
     }
     else if (i == 4)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * (new_grid_size_y / 2) +
            (new_grid_size_x * 3) - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -4062,7 +4154,7 @@ void MyGame::setupRoomFourteen()
     }
     else if (i == 5)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x * new_grid_size_y) -
               (new_grid_size_x / 2)].getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -4083,12 +4175,10 @@ void MyGame::setupRoomFourteen()
 void MyGame::setupRoomFifteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 16;
   int new_grid_size_y = 9;
@@ -4097,16 +4187,15 @@ void MyGame::setupRoomFifteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -4205,25 +4294,19 @@ void MyGame::setupRoomFifteen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[8];
+    GameObject new_gameobject = new_room.getMyBackground()[8];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 6, "This has been used recently, "
-                                           "could it be? FIBI?");
+    new_clues[i] = Clue(new_gameobject, 6);
   }
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(1);
@@ -4232,7 +4315,7 @@ void MyGame::setupRoomFifteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x *(new_grid_size_y / 2))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -4252,12 +4335,10 @@ void MyGame::setupRoomFifteen()
 void MyGame::setupRoomSixteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 16;
   int new_grid_size_y = 7;
@@ -4266,16 +4347,15 @@ void MyGame::setupRoomSixteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -4359,19 +4439,13 @@ void MyGame::setupRoomSixteen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[13];
+    GameObject new_gameobject = new_room.getMyBackground()[13];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 7, "What is this? fibi understands "
-                                           "emotions,/n no no no, this can’t "
-                                           "be happening!");
+    new_clues[i] = Clue(new_gameobject, 7);
   }
   new_room.setMyClues(new_clues);
 
@@ -4381,17 +4455,14 @@ void MyGame::setupRoomSixteen()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[44];
+      GameObject new_gameobject = new_room.getMyBackground()[44];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(KEYCARD_BLUE, new_location), 3,
-                          "You found a blue keycard.", "Blue Keycard");
-
+      new_items[i] = Item(GameObject(KEYCARD_BLUE, new_location), 3);
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(1);
@@ -4400,7 +4471,7 @@ void MyGame::setupRoomSixteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2))].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -4420,37 +4491,86 @@ void MyGame::setupRoomSixteen()
 void MyGame::setupRoomSeventeen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
-  int new_grid_size_x = 12;
-  int new_grid_size_y = 9;
+  int new_grid_size_x = 10;
+  int new_grid_size_y = 7;
 
   new_room.setRoomID(OBSERVATION);
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
   for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
   {
 
-    new_foreground[i].setMySpriteId(-1);
+    if (i ==  24 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(DESK_LEFT, new_location);
+    }
+    else if (i ==  25 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(DESK_RIGHT, new_location);
+    }
+    else if (i ==  34 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(DESK_CHAIR_BOTTOM, new_location);
+    }
+    else if (i >=  0 && i < new_grid_size_x)
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(COMPUTERS_TOP_CENTRE, new_location);
+    }
+    else if (i ==  67 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(CAFE_TABLE_LEFT, new_location);
+    }
+    else if (i ==  68 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(CAFE_TABLE_RIGHT, new_location);
+    }
+    else if (i ==  57 )
+    {
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(CHAIR_TOP, new_location);
+    }
+    else
+    {
+      new_foreground[i].setMySpriteId(-1);
+    }
     left_side += GRID_SIZE;
     if (i%new_grid_size_x == new_grid_size_x-1)
     {
@@ -4464,17 +4584,12 @@ void MyGame::setupRoomSeventeen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -4483,7 +4598,7 @@ void MyGame::setupRoomSeventeen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -4492,7 +4607,7 @@ void MyGame::setupRoomSeventeen()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2) )].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -4512,9 +4627,7 @@ void MyGame::setupRoomSeventeen()
 void MyGame::setupRoomEighteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -4526,16 +4639,15 @@ void MyGame::setupRoomEighteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -4599,10 +4711,6 @@ void MyGame::setupRoomEighteen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -4628,40 +4736,40 @@ void MyGame::setupRoomEighteen()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[168].getMyLocation();
-      Point2D new_target_location = new_background[25].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[168].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[25].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
     }
     else if (i == 1)
     {
-      Point2D new_location = new_background[310].getMyLocation();
-      Point2D new_target_location = new_background[27].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[310].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[27].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
     }
     else if (i == 2)
     {
-      Point2D new_location = new_background[319].getMyLocation();
-      Point2D new_target_location = new_background[27].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[319].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[27].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
     }
     else if (i == 3)
     {
-      Point2D new_location = new_background[338].getMyLocation();
-      Point2D new_target_location = new_background[27].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[338].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[27].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
     }
     else if (i == 4)
     {
-      Point2D new_location = new_background[157].getMyLocation();
-      Point2D new_target_location = new_background[27].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[157].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[27].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
@@ -4670,7 +4778,7 @@ void MyGame::setupRoomEighteen()
   new_puzzle.setMyMovables(new_movable_gameobjects);
   new_puzzle.setTargetMovableLocations(new_target_movable_locations);
 
-  std::string new_puzzle_solved_message = "";
+  std::string new_puzzle_solved_message;
   new_puzzle.setPuzzleSolvedMessage(new_puzzle_solved_message);
 
   new_puzzle.setPuzzleID(-1);
@@ -4685,7 +4793,7 @@ void MyGame::setupRoomEighteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -4694,7 +4802,7 @@ void MyGame::setupRoomEighteen()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2) )].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -4714,12 +4822,10 @@ void MyGame::setupRoomEighteen()
 void MyGame::setupRoomNineteen()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 12;
   int new_grid_size_y = 11;
@@ -4728,16 +4834,15 @@ void MyGame::setupRoomNineteen()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -4787,10 +4892,6 @@ void MyGame::setupRoomNineteen()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -4800,17 +4901,15 @@ void MyGame::setupRoomNineteen()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[0];
+      GameObject new_gameobject = new_room.getMyBackground()[0];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(KEYCARD_RED, new_location), 10,
-                          "You found a red keycard.", "Red Keycard");
+      new_items[i] = Item(GameObject(KEYCARD_RED, new_location), 10);
 
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(1);
@@ -4819,7 +4918,7 @@ void MyGame::setupRoomNineteen()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -4840,9 +4939,7 @@ void MyGame::setupRoomNineteen()
 void MyGame::setupRoomTwenty()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -4854,16 +4951,15 @@ void MyGame::setupRoomTwenty()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -4933,10 +5029,6 @@ void MyGame::setupRoomTwenty()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -4964,7 +5056,7 @@ void MyGame::setupRoomTwenty()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[2].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[2].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
                                false);
@@ -4972,7 +5064,7 @@ void MyGame::setupRoomTwenty()
     }
     else if (i == 1)
     {
-      Point2D new_location = new_background[
+      Point2D new_location = new_room.getMyBackground()[
           new_grid_size_x * (new_grid_size_y - 7) + 2].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
@@ -4981,7 +5073,7 @@ void MyGame::setupRoomTwenty()
     }
     else if (i == 2)
     {
-      Point2D new_location = new_background[
+      Point2D new_location = new_room.getMyBackground()[
           new_grid_size_x * (new_grid_size_y - 5) + 2].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
@@ -4990,7 +5082,7 @@ void MyGame::setupRoomTwenty()
     }
     else if (i == 3)
     {
-      Point2D new_location = new_background[
+      Point2D new_location = new_room.getMyBackground()[
           new_grid_size_x * (new_grid_size_y - 3) + 2].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
@@ -4999,7 +5091,7 @@ void MyGame::setupRoomTwenty()
     }
     else if (i == 4)
     {
-      Point2D new_location = new_background[
+      Point2D new_location = new_room.getMyBackground()[
           new_grid_size_x * (new_grid_size_y - 1) + 2].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location),
                                GameObject(0, new_location),
@@ -5033,7 +5125,7 @@ void MyGame::setupRoomTwenty()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -5054,9 +5146,7 @@ void MyGame::setupRoomTwenty()
 void MyGame::setupRoomTwentyOne()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -5068,16 +5158,15 @@ void MyGame::setupRoomTwentyOne()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -5136,10 +5225,6 @@ void MyGame::setupRoomTwentyOne()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -5149,29 +5234,26 @@ void MyGame::setupRoomTwentyOne()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[new_grid_size_x * 3 + 7 ];
+      GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x * 3 + 7 ];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(HAMMER, new_location), 8,
-                          "You found a hammer.", "Hammer");
+      new_items[i] = Item(GameObject(HAMMER, new_location), 8);
 
     }
     else if (i == 1)
     {
-      GameObject new_gameobject = new_background[new_grid_size_x  + 3];
+      GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 3];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(PLIERS, new_location), 9,
-                          "You found a pair of pliers.", "Pliers");
+      new_items[i] = Item(GameObject(PLIERS, new_location), 9);
 
     }
     else if (i == 2)
     {
-      GameObject new_gameobject = new_background[new_grid_size_x * 3 + 5];
+      GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x * 3 + 5];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(MAGNIFIER, new_location), 10,
-                          "You found a Magnifying glass.", "Magnifying glass");
+      new_items[i] = Item(GameObject(MAGNIFIER, new_location), 12);
 
     }
   }
@@ -5204,16 +5286,16 @@ void MyGame::setupRoomTwentyOne()
   {
     if (i == 0)
     {
-      Point2D new_location = new_background[7].getMyLocation();
-      Point2D new_target_location = new_background[25].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[7].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[25].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
     }
     else if (i == 1)
     {
-      Point2D new_location = new_background[47].getMyLocation();
-      Point2D new_target_location = new_background[27].getMyLocation();
+      Point2D new_location = new_room.getMyBackground()[47].getMyLocation();
+      Point2D new_target_location = new_room.getMyBackground()[27].getMyLocation();
       new_movable_gameobjects[i] = GameObject(0, new_location);
       new_target_movable_locations[i].x = new_target_location.x;
       new_target_movable_locations[i].y = new_target_location.y;
@@ -5238,7 +5320,7 @@ void MyGame::setupRoomTwentyOne()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           new_grid_size_x   *(new_grid_size_y / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -5246,7 +5328,7 @@ void MyGame::setupRoomTwentyOne()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -5267,12 +5349,10 @@ void MyGame::setupRoomTwentyOne()
 void MyGame::setupRoomTwentyTwo()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 12;
   int new_grid_size_y = 9;
@@ -5281,16 +5361,15 @@ void MyGame::setupRoomTwentyTwo()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -5341,17 +5420,12 @@ void MyGame::setupRoomTwentyTwo()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -5360,7 +5434,7 @@ void MyGame::setupRoomTwentyTwo()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           new_grid_size_x   *(new_grid_size_y / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -5368,7 +5442,7 @@ void MyGame::setupRoomTwentyTwo()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -5389,12 +5463,10 @@ void MyGame::setupRoomTwentyTwo()
 void MyGame::setupRoomTwentyThree()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 12;
   int new_grid_size_y = 9;
@@ -5403,16 +5475,15 @@ void MyGame::setupRoomTwentyThree()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -5463,22 +5534,13 @@ void MyGame::setupRoomTwentyThree()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[10];
+    GameObject new_gameobject = new_room.getMyBackground()[10];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 8, "Power continues to cut out, i’m "
-                                           "starting to think its not a "
-                                           "coincidence,\n"
-                                           "i'll keep the key to the reactor "
-                                           "in my safe until the issue "
-                                           "is resolved");
+    new_clues[i] = Clue(new_gameobject, 8);
   }
   new_room.setMyClues(new_clues);
 
@@ -5488,17 +5550,15 @@ void MyGame::setupRoomTwentyThree()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_background[0];
+      GameObject new_gameobject = new_room.getMyBackground()[0];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
-      new_items[i] = Item(GameObject(KEY, new_location), 7,
-                          "You found the key to the reactor room.", "Key");
+      new_items[i] = Item(GameObject(KEY, new_location), 7);
 
     }
   }
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(3);
@@ -5507,7 +5567,7 @@ void MyGame::setupRoomTwentyThree()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x / 2)].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location),
@@ -5515,7 +5575,7 @@ void MyGame::setupRoomTwentyThree()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           new_grid_size_x   *(new_grid_size_y / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -5523,7 +5583,7 @@ void MyGame::setupRoomTwentyThree()
     }
     else if (i == 2)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   *(new_grid_size_y / 2)+
            new_grid_size_x - 1)].getMyLocation();
       new_exit_location.x += (GRID_SIZE / 2);
@@ -5544,12 +5604,10 @@ void MyGame::setupRoomTwentyThree()
 void MyGame::setupRoomTwentyFour()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
-  Puzzle new_puzzle;
+  Puzzle new_puzzle = Puzzle();
   Exit* new_exits = nullptr;
   int new_grid_size_x = 10;
   int new_grid_size_y = 7;
@@ -5558,16 +5616,15 @@ void MyGame::setupRoomTwentyFour()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -5619,24 +5676,19 @@ void MyGame::setupRoomTwentyFour()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_background[24];
+    GameObject new_gameobject = new_room.getMyBackground()[24];
     new_gameobject.setMySpriteId(1);
-    new_clues[i] = Clue(new_gameobject, 9, "Insert clue here");
+    new_clues[i] = Clue(new_gameobject, 9);
   }
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(0);
   new_room.setMyItems(new_items);
 
-  setupNoPuzzle(&new_puzzle);
   new_room.setMyPuzzle(new_puzzle);
 
   new_room.setNumberExits(2);
@@ -5645,7 +5697,7 @@ void MyGame::setupRoomTwentyFour()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           new_grid_size_x   *(new_grid_size_y / 2)].getMyLocation();
       new_exit_location.x -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(3, new_exit_location),
@@ -5653,7 +5705,7 @@ void MyGame::setupRoomTwentyFour()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   * new_grid_size_y
             - (new_grid_size_x/ 2))].getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -5674,9 +5726,7 @@ void MyGame::setupRoomTwentyFour()
 void MyGame::setupRoomTwentyFive()
 {
   Room new_room;
-  GameObject* new_background = nullptr;
   GameObject* new_foreground = nullptr;
-  GameObject* new_walls = nullptr;
   Clue* new_clues = nullptr;
   Item* new_items = nullptr;
   Puzzle new_puzzle;
@@ -5688,16 +5738,15 @@ void MyGame::setupRoomTwentyFive()
   new_room.setMyGridsizeX(new_grid_size_x);
   new_room.setMyGridsizeY(new_grid_size_y);
 
-  new_background = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  setupFloorStandard(new_background, new_grid_size_x, new_grid_size_y);
-  new_room.setMyBackground(new_background);
+  new_room.setupFloorStandard();
+  new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
+  auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
                                              new_grid_size_x)*0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
+  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
                                       (GRID_SIZE*
                                        (static_cast<float>(
                                             new_grid_size_y)*0.5f)));
@@ -5770,10 +5819,6 @@ void MyGame::setupRoomTwentyFive()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_walls = new GameObject[(((new_grid_size_x+new_grid_size_y)*2)+4)];
-  setupWalls(new_walls, new_grid_size_x, new_grid_size_y);
-  new_room.setMyWalls(new_walls);
-
   new_room.setNumberClues(0);
   new_room.setMyClues(new_clues);
 
@@ -5820,7 +5865,7 @@ void MyGame::setupRoomTwentyFive()
   {
     if (i == 0)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           new_grid_size_x / 2].getMyLocation();
       new_exit_location.y -= (GRID_SIZE / 2);
       new_exits[i] = Exit(GameObject(0, new_exit_location),
@@ -5828,7 +5873,7 @@ void MyGame::setupRoomTwentyFive()
     }
     else if (i == 1)
     {
-      Point2D new_exit_location = new_background[
+      Point2D new_exit_location = new_room.getMyBackground()[
           (new_grid_size_x   * new_grid_size_y
            - (new_grid_size_x/ 2))].getMyLocation();
       new_exit_location.y += (GRID_SIZE / 2);
@@ -5840,178 +5885,4 @@ void MyGame::setupRoomTwentyFive()
   visited_rooms[RECEPTION] = new_room;
 }
 
-void MyGame::setupWalls(GameObject* new_walls, int new_grid_size_x,
-                       int new_grid_size_y)
-{
-  float wall_left_side = static_cast<float>((GAME_WIDTH*0.5)-
-                                            (GRID_SIZE*
-                                             (static_cast<float>(new_grid_size_x)*
-                                              0.5f))-GRID_SIZE);
-  float wall_top_side = static_cast<float>((GAME_HEIGHT*0.5)-
-                                           (GRID_SIZE*
-                                            (static_cast<float>(new_grid_size_y)*
-                                             0.5f))-GRID_SIZE);
 
-  for (int i = 0; i < (((new_grid_size_x+new_grid_size_y)*2)+4); i++)
-  {
-
-    if (i == 0)
-    {
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(TOP_LEFT, new_location);
-    }
-    else if (i > 0 &&
-             i < new_grid_size_x + 1)
-    {
-      wall_left_side += GRID_SIZE;
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(TOP, new_location);
-    }
-    else if (i == new_grid_size_x + 1)
-    {
-
-
-      wall_left_side += GRID_SIZE;
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(TOP_RIGHT, new_location);
-    }
-    else if (i > new_grid_size_x + 1 &&
-             i < new_grid_size_x + new_grid_size_y + 2)
-    {
-      wall_left_side = static_cast<float>((GAME_WIDTH ) * 0.5 - (
-          GRID_SIZE *(static_cast<float>(new_grid_size_x) * 0.5f))- GRID_SIZE);
-      wall_top_side += GRID_SIZE;
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(LEFT, new_location);
-    }
-
-    else if (i == new_grid_size_x + new_grid_size_y + 2)
-    {
-      wall_top_side = static_cast<float>((GAME_HEIGHT) * 0.5 -
-                                         (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
-
-      wall_left_side = static_cast<float>((GAME_WIDTH * 0.5) + (GRID_SIZE *
-                                                                (static_cast<float>(new_grid_size_x) * 0.5f)) );
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(RIGHT, new_location);
-    }
-    else if (i > new_grid_size_x + new_grid_size_y + 2 &&
-             i < (new_grid_size_x + (new_grid_size_y * 2)) + 2)
-    {
-      wall_top_side += GRID_SIZE;
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(RIGHT, new_location);
-
-    }
-    else if (i == ((new_grid_size_x + (new_grid_size_y * 2)) + 2))
-    {
-      wall_left_side = static_cast<float>((GAME_WIDTH ) * 0.5 -
-                                          (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f))- GRID_SIZE);
-      wall_top_side += GRID_SIZE;
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(BOTTOM_LEFT, new_location);
-      wall_left_side += GRID_SIZE;
-    }
-
-    else if (i > (new_grid_size_x + (new_grid_size_y * 2)) + 2 &&
-             i < (new_grid_size_x * 2) + (new_grid_size_y * 2) + 3)
-    {
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(BOTTOM, new_location);
-      wall_left_side += GRID_SIZE;
-    }
-    else if (i ==  (new_grid_size_x * 2) + (new_grid_size_y * 2) + 3)
-    {
-      Point2D new_location;
-      new_location.x = wall_left_side;
-      new_location.y = wall_top_side;
-      new_walls[i] = GameObject(BOTTOM_RIGHT, new_location);
-    }
-  }
-}
-
-void MyGame::setupFloorStandard(GameObject* new_background, int new_grid_size_x,
-                int new_grid_size_y)
-{
-  float left_side = static_cast<float>(GAME_WIDTH*0.5-
-                                       (GRID_SIZE*
-                                        (static_cast<float>(new_grid_size_x)*
-                                         0.5f)));
-  float top_side = static_cast<float>(GAME_HEIGHT*0.5-
-                                      (GRID_SIZE*
-                                       (static_cast<float>(new_grid_size_y)*
-                                        0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
-  {
-    Point2D new_location;
-    new_location.x = left_side;
-    new_location.y = top_side;
-    new_background[i] = GameObject(0, new_location);
-    left_side += GRID_SIZE;
-    if (i % new_grid_size_x == new_grid_size_x - 1)
-    {
-      left_side = static_cast<float>(GAME_WIDTH*0.5-
-                                     (GRID_SIZE*
-                                      (static_cast<float>(new_grid_size_x)*
-                                       0.5f)));
-      top_side += GRID_SIZE;
-    }
-  }
-
-}
-
-void MyGame::setupNoPuzzle(Puzzle* new_puzzle)
-{
-  new_puzzle->setNumberLinkedExits(0);
-  int* new_linked_exits = nullptr;
-  new_linked_exits = new int[new_puzzle->getNumberLinkedExits()];
-  for (int i = 0; i < new_puzzle->getNumberLinkedExits(); i++)
-  {
-  }
-  new_puzzle->setLinkedExits(new_linked_exits);
-
-  Switch* new_switches = nullptr;
-  bool* new_target_switch_states = nullptr;
-  new_puzzle->setNumberSwitches(0);
-  new_switches = new Switch[new_puzzle->getNumberSwitches()];
-  new_target_switch_states = new bool[new_puzzle->getNumberSwitches()];
-  for (int i = 0; i < new_puzzle->getNumberSwitches(); i++)
-  {
-  }
-  new_puzzle->setMySwitches(new_switches);
-  new_puzzle->setTargetSwitchStates(new_target_switch_states);
-
-  GameObject* new_movable_gameobjects = nullptr;
-  new_puzzle->setNumberMovables(0);
-  new_movable_gameobjects = new GameObject[new_puzzle->getNumberMovables()];
-  Point2D* new_target_movable_locations = nullptr;
-  new_target_movable_locations = new Point2D[new_puzzle->getNumberMovables()];
-  for (int i = 0; i < new_puzzle->getNumberMovables(); i++)
-  {
-  }
-  new_puzzle->setMyMovables(new_movable_gameobjects);
-  new_puzzle->setTargetMovableLocations(new_target_movable_locations);
-
-  std::string new_puzzle_solved_message = "";
-  new_puzzle->setPuzzleSolvedMessage(new_puzzle_solved_message);
-
-  new_puzzle->setPuzzleID(-1);
-  new_puzzle->setRequiredItemID(-1);
-  new_puzzle->setPowerRequired(false);
-}

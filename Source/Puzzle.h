@@ -11,7 +11,6 @@
 class Puzzle
 {
  public:
-  int getPuzzleID() ;
   void setPuzzleID(int new_id);
   int* getLinkedExits() ;
   void setLinkedExits(int* new_exits);
@@ -21,9 +20,7 @@ class Puzzle
   void setMySwitches(Switch* new_switches);
   int getNumberLinkedExits() const;
   void setNumberLinkedExits(int new_number_linked_exits);
-  int getRequiredItemID() const;
   void setRequiredItemID(int new_required_item_id);
-  int getRequiredClueID() const;
   void setRequiredClueID(int new_required_clue_id);
   int getNumberMovables() const;
   void setNumberMovables(int new_number_movables);
@@ -32,13 +29,11 @@ class Puzzle
   bool checkPuzzleCompleted(Player* player, bool* power_on);
   Point2D* getTargetMovableLocations() const;
   void setTargetMovableLocations(Point2D* new_target_movable_locations);
-  bool* getTargetSwitchStates() const;
   void setTargetSwitchStates(bool* new_target_switch_states);
   std::string getPuzzleSolvedMessage();
   void setPuzzleSolvedMessage(std::string new_puzzle_solved_message);
-  bool isPowerRequired();
   void setPowerRequired(bool power_required);
-
+  Puzzle();
  private:
   int puzzle_id;
   int number_linked_exits;

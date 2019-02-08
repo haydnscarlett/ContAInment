@@ -7,7 +7,8 @@
 
 #endif //EXMACHINA_CONSTANTS_H
 // game state enum
-enum{SPLASH_SCREEN, MAIN_MENU, IN_GAME, TEXT_DISPLAY, PAUSE, INVENTORY, GAME_OVER};
+enum{SPLASH_SCREEN, MAIN_MENU, IN_GAME, TEXT_DISPLAY, PAUSE, INVENTORY,
+  GAME_OVER, JOURNAL, MAP};
 // main menu options
 enum{NEW_GAME, LOAD_GAME, EXIT_GAME};
 // pause menu options
@@ -44,6 +45,7 @@ SECURITY, RECEPTION, EXIT};
 enum{ SCREWDRIVER, FUSE, KEYCARD_BLUE, CAN, LUNCHBOX, KEY, KEYCARD_RED,
   KEYCARD_GREEN, KEYCARD_YELLOW , HAMMER, PLIERS, MAGNIFIER};
 
+// number of sprites for sprite arrays
 const int NUM_FLOOR_SPRITES = 3;
 const int NUM_WALL_SPRITES = 8;
 const int NUM_FOREGROUND_SPRITES = 77;
@@ -53,13 +55,68 @@ const int NUM_SWITCH_SPRITES = 1;
 const int NUM_EXIT_SPRITES = 4;
 const int NUM_MOVABLE_SPRITES = 1;
 const int NUM_PLAYER_SPRITES = 16;
-const int NUM_CLUES = 10;
 
+// number of rooms in the game
 const int NUM_ROOMS = 25;
 
+// the game windows height and width
 const float GAME_HEIGHT = 768.0f;
 const float GAME_WIDTH = 1366.0f;
+
+// the size of a game sprite
 const float GRID_SIZE = 75.0f;
+
+// the distance tolerance check used for collision
 const float DISTANCE_CHECK = 0.005f;
+
+// the distance tolerance check used for checking if a puzzle is completed
 const float MOVABLE_DISTANCE_CHECK = 0.025f;
+
+// the distance to move the room in the update function whilst the player is
+// moving
 const float MOVEMENT_DISTANCE = 0.25f;
+
+const std::string ITEM_NAMES[13] = { "Screwdriver", "Fuse", "Yellow Keycard",
+                                     "Blue Keycard", "Can", "Lunch box",
+                                     "Can", "Key", "Hammer", "Pliers",
+                                     "Red Keycard", "Green Keycard",
+                                     "Magnifying glass." };
+const std::string ITEM_DESCRIPTIONS[13] = { "You found a screwdriver.",
+                                            "You found a fuse.",
+                                            "You found a yellow keycard.",
+                                            "You found a blue keycard.",
+                                            "You found a can.",
+                                            "You found a lunch box.",
+                                            "You found a can.",
+                                            "You found the key to the reactor room.",
+                                            "You found a hammer" ,
+                                            "You found a pair of pliers.",
+                                            "You found a red keycard.",
+                                            "You found a green keycard.",
+                                            "You found a Magnifying glass." };
+const std::string CLUES[10] = { "There is no power." ,
+                                "There is a spare reactor fuse in the lab "
+                                "coat in the garden, did you leave "
+                                "it there \n""on purpose?" ,
+                                "8197",
+                                "IMPORTANT: In case of an "
+                                "Emergency password is 'SANE'",
+                                "Join me at reception hun ;)" ,
+                                "Reading list: Reprogrammimng the brain, "
+                                "Modern Neuroscience  \n"
+                                "Advanced AI, AI Pattern Recogniton, Printing"
+                                " Synthetic organs, The synthetic Human.",
+                                "This has been used recently, "
+                                "could it be? FIBI?",
+                                "What is this? We were using human "
+                                "brains, \nno no no, this can’t "
+                                "be happening!",
+                                "Power continues to cut out, i'm "
+                                "starting to think it's not a "
+                                "coincidence, \n"
+                                "i'll keep the key to the reactor "
+                                "in my safe until the issue "
+                                "is resolved.",
+                                "Keycards: Red = Emergency exit from Atrium,"
+                                " Green = Waste Disposal, \nYellow = Labs,"
+                                " Blue = Reception Exit"};

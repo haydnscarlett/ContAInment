@@ -25,11 +25,6 @@ class MyGame : public ASGE::OGLGame
 
  private:
   void setupGame();
-  void setupWalls(GameObject* new_walls, int new_grid_size_x,
-                  int new_grid_size_y);
-  void setupFloorStandard(GameObject* new_background, int new_grid_size_x,
-                  int new_grid_size_y);
-  void setupNoPuzzle(Puzzle* new_puzzle);
   void setupRoomOne();
   void setupRoomTwo();
   void setupRoomThree();
@@ -66,7 +61,7 @@ class MyGame : public ASGE::OGLGame
   void setupPlayerSprites();
 
 
-  void keyHandler(const ASGE::SharedEventData data);
+  void keyHandler(ASGE::SharedEventData data);
   void keyHandlerMainMenu(const ASGE::KeyEvent* key);
   void keyHandlerInGame(const ASGE::KeyEvent* key);
   void keyHandlerInventory(const ASGE::KeyEvent* key);
@@ -84,6 +79,8 @@ class MyGame : public ASGE::OGLGame
   void renderPause();
   void renderGameOver();
   void renderInventory();
+  void renderClues();
+  void renderMap();
 
 
   void exitGame();
@@ -101,6 +98,7 @@ class MyGame : public ASGE::OGLGame
   ASGE::Sprite* text_box = nullptr;
   ASGE::Sprite* inventory_screen = nullptr;
   ASGE::Sprite* inventory_highlighter = nullptr;
+  ASGE::Sprite* map = nullptr;
 
   ASGE::Sprite* floor_sprites[NUM_FLOOR_SPRITES];
   ASGE::Sprite* wall_sprites[NUM_WALL_SPRITES];

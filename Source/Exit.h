@@ -14,15 +14,11 @@ class Exit
        int new_connected_exit_id, bool new_locked);
   GameObject getMyExitGameobject();
   void setMyExitGameobject(GameObject new_exit_gameobject);
-  int getExitID() ;
-  void setExitID(int new_exit_ID);
-  int getConnectedRoomID() ;
-  void setConnectedRoomID(int new_connected_room_id);
-  int getConnectedExitID() ;
-  void setConnectedExitID(int new_connected_exit_id);
+  int getExitID();
+  int getConnectedRoomID();
+  int getConnectedExitID();
   bool isLocked();
   void setLocked(bool new_locked);
-  bool collisionCheck(Point2D player_location, int player_direction);
  private:
   GameObject my_exit_gameobject;
   int exit_id;

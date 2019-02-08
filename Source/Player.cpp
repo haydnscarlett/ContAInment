@@ -6,6 +6,11 @@
 #include "Player.h"
 #include "Constants.h"
 
+/**
+*   @brief   Constructor
+*   @details This function creates a defualt player class
+*   @return  Player
+*/
 Player::Player()
 {
 
@@ -13,32 +18,41 @@ Player::Player()
   GameObject new_gameobject(-1, new_location);
 
   player_gameobject = new_gameobject;
-  for (int i =0; i < 15; i++)
+  int range[15] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+  for (int i : range)
   {
     inventory[i].setMyGameObject(new_gameobject);
-    inventory[i].setItemName("");
-    inventory[i].setItemDescription("");
     inventory[i].setItemID(-1);
   }
   clues_found = nullptr;
   number_clues_found = 0;
-  puzzles_solved= nullptr;
-  number_puzzles_solved = 0;
   direction = 0;
   moving = false;
   sprite_index = 0;
 }
+
+/**
+*   @brief   Constructor Overload
+*   @details This function creates a player class with the input data
+*   @param   new_player_gameobject The player Gameobject
+*   @param   new_inventory[] The inventory array
+*   @param   new_clues_found The array of clues found ID'S
+*   @param   new_number_clues_found The number of clues found
+*   @param   new_puzzles_solved The array of puzzles solved ID'S
+*   @param   new_number_puzzles_solved The number of puzzles solved
+*   @param   new_direction Int represents direction player is facing
+*   @param   new_moving The moving bool
+*   @param   new_sprite_index The initial sprite index
+*   @return  Player
+*/
 Player::Player(GameObject new_player_gameobject, Item new_inventory[],
 int* new_clues_found, int new_number_clues_found,
-int* new_puzzles_solved, int new_number_puzzles_solved,
 int new_direction, bool new_moving, int new_sprite_index)
 {
   player_gameobject = new_player_gameobject;
   for (int i =0; i < 15; i++)
   {
     inventory[i].setMyGameObject(new_inventory[i].getMyGameObject());
-    inventory[i].setItemName(new_inventory[i].getItemName());
-    inventory[i].setItemDescription(new_inventory[i].getItemDescription());
     inventory[i].setItemID(new_inventory[i].getItemID());
   }
   number_clues_found = new_number_clues_found;
@@ -48,35 +62,63 @@ int new_direction, bool new_moving, int new_sprite_index)
   {
     clues_found[i] = new_clues_found[i];
   }
-  number_puzzles_solved = new_number_puzzles_solved;
-  puzzles_solved = new int[number_puzzles_solved];
-  for (int i =0; i < number_puzzles_solved; i++)
-  {
-    puzzles_solved[i] = new_puzzles_solved[i];
-  }
   direction = new_direction;
   moving = new_moving;
   sprite_index = new_sprite_index;
 
 }
+
+/**
+*   @brief   Get Player Gameobject
+*   @details This function returns the player gameobject
+*   @return  GameObject
+*/
 GameObject Player::getPlayerGameobject()
 {
   return player_gameobject;
 }
 
+/**
+*   @brief   Set Player Gameobject
+*   @details This function sets the player gameobject
+*   @param   new_player_gameobject The player Gameobject
+*   @return  void
+*/
 void Player::setPlayerGameobject(GameObject new_player_gameobject)
 {
   player_gameobject = new_player_gameobject;
 }
 
+/**
+*   @brief   Get Inventory
+*   @details This function gets an item from the player Inventory array
+*   @param   index The index of the item to return from the array
+*   @return  Item
+*/
 Item Player::getInventory(int index)
 {
   return inventory[index];
 }
+
+/**
+*   @brief   Add Item to Inventory
+*   @details This function adds an Item to the player Inventory array
+*   @param   new_item The Item to add
+*   @param   index The index in the inventory to add the Item
+*   @return  void
+*/
 void Player::addToInventory(Item new_item, int index)
 {
   inventory[index] = new_item;
 }
+
+/**
+*   @brief   Add Clue ID to Clues found array
+*   @details This function adds a clue ID to the player Cues found array
+*   @param   new_clue The clue ID to add
+*   @param   index The index in the Clues found array to add the clue ID
+*   @return  void
+*/
 void Player::addToClues(int new_clue, int index)
 {
   int* tmp;
@@ -88,80 +130,94 @@ void Player::addToClues(int new_clue, int index)
   clues_found[index] = new_clue;
 }
 
+/**
+*   @brief   Get Clues Found array
+*   @details This function returns the player Clues found array
+*   @return  int*
+*/
 int* Player::getCluesFound()
 {
   return clues_found;
 }
+
+/**
+*   @brief   Get Clue Found
+*   @details This function gets a clue id from the player Clues found array
+*   @param   index The index of the clue to return from the array
+*   @return  int
+*/
 int Player::getClueFound(int index)
 {
   return clues_found[index];
 }
 
-void Player::setCluesFound(int* new_clues_found)
-{
-  clues_found = new_clues_found;
-}
-
-int* Player::getPuzzlesSolved()
-{
-  return puzzles_solved;
-}
-
-void Player::setPuzzlesSolved(int* new_puzzles_solved)
-{
-  puzzles_solved = new_puzzles_solved;
-}
-
+/**
+*   @brief   Get Player Direction
+*   @details This function returns the player direction
+*   @return  int
+*/
 int Player::getDirection()
 {
   return direction;
 }
 
+/**
+*   @brief   Set Direction
+*   @details This function sets the player direction
+*   @param   new_direction The direction to set the player
+*   @return  void
+*/
 void Player::setDirection(int new_direction)
 {
   direction = new_direction;
 }
 
+/**
+*   @brief   Get Player moving bool
+*   @details This function returns the player moving bool
+*   @return  bool
+*/
 bool Player::isMoving()
 {
   return moving;
 }
 
+/**
+*   @brief   Set Moving
+*   @details This function sets the player moving bool
+*   @param   new_moving The bool to set the player moving bool to
+*   @return  void
+*/
 void Player::setMoving(bool new_moving)
 {
   moving = new_moving;
 }
 
+/**
+*   @brief   Get Sprite Index
+*   @details This function returns the player sprite index
+*   @return  int
+*/
 int Player::getSpriteIndex()
 {
   return sprite_index;
 }
 
-void Player::setSpriteIndex(int new_sprite_index)
-{
-  sprite_index = new_sprite_index;
-}
-
+/**
+*   @brief   Get Number Clues Found
+*   @details This function returns the number of clues found
+*   @return  int
+*/
 int Player::getNumberCluesFound()
 {
   return number_clues_found;
 }
 
-void Player::setNumberCluesFound(int new_number_clues_found)
-{
-  number_clues_found = new_number_clues_found;
-}
-
-int Player::getNumberPuzzlesSolved()
-{
-  return number_puzzles_solved;
-}
-
-void Player::setNumberPuzzlesSolved(int new_number_puzzles_solved)
-{
-  number_puzzles_solved = new_number_puzzles_solved;
-}
-
+/**
+*   @brief   Save Player Data
+*   @details This function saves the player data
+*   @return  void
+*/
 void Player::savePlayerData()
 {
 // Select a directory that has write access and exists
@@ -173,42 +229,74 @@ void Player::savePlayerData()
   using Buffer = ASGE::FILEIO::IOBuffer;
   Buffer data = Buffer();
 // generate the data buffer that represents a player
-  char number[3];
-  sprintf(number,"%i", number_clues_found);
-  data.append(number, 3);
-  for (int i = 0; i < number_clues_found; i++)
+  std::string tmp = std::to_string(direction);
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+  tmp = std::to_string(moving);
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+  if (sprite_index >= 0 && sprite_index < 10)
   {
-    sprintf(number,"%i", clues_found[i]);
-    data.append(number, 3);
+    tmp ="0";
+    data.append(tmp);
   }
-  sprintf(number,"%i", number_puzzles_solved);
-  data.append(number, 3);
-  for (int i = 0; i < number_puzzles_solved; i++)
+  tmp = std::to_string(sprite_index);
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+  int range[15] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+  for (int i : range)
   {
-    sprintf(number,"%i", puzzles_solved[i]);
-    data.append(number, 3);
-  }
+    if (inventory[i].getItemID() >= 0 && inventory[i].getItemID() < 10)
+    {
+      tmp ="0";
+      data.append(tmp);
+    }
+    tmp = std::to_string(inventory[i].getItemID());
+    data.append(tmp);
+    tmp =",";
+    data.append(tmp);
 
-  sprintf(number,"%i", direction);
-  data.append(number, 3);
-  sprintf(number,"%i", moving);
-  data.append(number, 3);
-  sprintf(number,"%i", sprite_index);
-  data.append(number, 3);
-  for (int i = 0; i < 15; i++)
-  {
-    sprintf(number,"%i", inventory[i].getMyGameObject().getMySpriteId());
-    data.append(number, 3);
   }
-  for (int i = 0; i < 15; i++)
+  for (int i : range)
   {
-    sprintf(number,"%i", inventory[i].getItemID());
-    data.append(number, 3);
+    if (inventory[i].getMyGameObject().getMySpriteId() >= 0 && inventory[i].getMyGameObject().getMySpriteId() < 10)
+    {
+      tmp ="0";
+      data.append(tmp);
+    }
+    tmp = std::to_string(inventory[i].getMyGameObject().getMySpriteId());
+    data.append(tmp);
+    tmp =",";
+    data.append(tmp);
+
   }
-  for (int i = 0; i < 15; i++)
+  if (number_clues_found >= 0 && number_clues_found < 10)
   {
-    data.append(inventory[i].getItemName());
-    data.append(inventory[i].getItemDescription());
+    tmp ="0";
+    data.append(tmp);
+  }
+  tmp = std::to_string(number_clues_found);
+  data.append(tmp);
+  tmp =",";
+  data.append(tmp);
+
+  if (number_clues_found > 0)
+  {
+    for (int i = 0; i < number_clues_found; i++)
+    {
+      if (clues_found[i] >= 0 && clues_found[i] < 10)
+      {
+        tmp ="0";
+        data.append(tmp);
+      }
+      tmp = std::to_string(clues_found[i]);
+      data.append(tmp);
+      tmp =",";
+      data.append(tmp);
+    }
   }
 
   using File = ASGE::FILEIO::File;
@@ -220,10 +308,14 @@ void Player::savePlayerData()
     // write the buffer to the file
     player_data.write(data);
   }
-
   player_data.close();
 }
 
+/**
+*   @brief   Load Player Data
+*   @details This function loads the player data
+*   @return  void
+*/
 void Player::loadPlayerData()
 {
   using File = ASGE::FILEIO::File;
@@ -233,59 +325,59 @@ void Player::loadPlayerData()
   if( file.open("/userdata/player.dat" , ASGE::FILEIO::File::IOMode::READ))
   {
     using Buffer = ASGE::FILEIO::IOBuffer;
+    size_t length = 2;
     Buffer buffer;
-    number_clues_found = atoi(buffer.data.get());
-    for (int i = 0; i < number_clues_found; i++)
-    {
-      buffer = file.read();
-      file.seek(sizeof(int));
-      clues_found[i] =  atoi(buffer.data.get());
-    }
-    number_puzzles_solved =  atoi(buffer.data.get());
-    for (int i = 0; i < number_puzzles_solved; i++)
-    {
-      buffer = file.read();
-      file.seek(sizeof(int));
-      puzzles_solved[i] =   atoi(buffer.data.get());
-    }
+    buffer = file.read();
+    direction = std::stoi(buffer.data.get());
+    file.seek(length);
+    buffer = file.read();
+    moving = static_cast<bool>(std::stoi(buffer.data.get()));
+    length +=2;
+    file.seek(length);
+    buffer = file.read();
+    sprite_index = (std::stoi(buffer.data.get()));
 
-    buffer = file.read();
-    file.seek(sizeof(int));
-    direction =   atoi(buffer.data.get());
-    buffer = file.read();
-    file.seek(sizeof(bool));
-    moving =  static_cast<bool>( atoi(buffer.data.get()));
-    buffer = file.read();
-    file.seek(sizeof(int));
-    sprite_index =   atoi(buffer.data.get());
-    for (int i = 0; i < 15; i++)
+    int range[15] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+    for (int i : range)
     {
+      length +=3;
+      file.seek(length);
       buffer = file.read();
-      file.seek(sizeof(int));
-      GameObject new_gameobject;
-      new_gameobject.setMySpriteId(
-          atoi(buffer.as_char()));
-      inventory[i].setMyGameObject(new_gameobject);
+      inventory[i].setItemID( (std::stoi(buffer.data.get())));
     }
-    for (int i = 0; i < 15; i++)
+    for (int i : range)
     {
+      length +=3;
+      file.seek(length);
       buffer = file.read();
-      file.seek(sizeof(int));
-      inventory[i].setItemID(  atoi(buffer.data.get()));
+      Point2D null;
+      inventory[i].setMyGameObject(GameObject((std::stoi(buffer.data.get())),null ));
     }
-    file.seek(sizeof(std::string));
-    for (int i = 0; i < 15; i++)
+    length +=3;
+    file.seek(length);
+    buffer = file.read();
+    number_clues_found = (std::stoi(buffer.data.get()));
+    if (number_clues_found > 0)
     {
-      buffer = file.read();
-      file.seek(sizeof(std::string));
-      inventory[i].setItemName(static_cast<std::string>(buffer.data.get()));
-      buffer = file.read();
-      inventory[i].setItemDescription(static_cast<std::string>(buffer.data.get()));
+      for (int i = 0; i < number_clues_found; i ++)
+      {
+        length +=3;
+        file.seek(length);
+        buffer = file.read();
+        addToClues((std::stoi(buffer.data.get())), i);
+        number_clues_found--;
+      }
     }
   }
   file.close();
 }
 
+/**
+*   @brief   Move Player
+*   @details This function returns the number of clues found
+*   @param   animation_counter The current time since the last movement
+*   @return  void
+*/
 void Player::movePlayer(double animation_counter)
 {
   if (moving)
@@ -338,6 +430,8 @@ void Player::movePlayer(double animation_counter)
             sprite_index += 1;
           }
           break;
+        default:
+          break;
       }
       player_gameobject.setMySpriteId(sprite_index);
     }
@@ -359,20 +453,25 @@ void Player::movePlayer(double animation_counter)
       case WEST:
           sprite_index = 4;
         break;
+      default:
+        break;
     }
     player_gameobject.setMySpriteId(sprite_index);
 
   }
 }
 
+/**
+*   @brief   Setup Player
+*   @details This function is used to setup the player
+*   @return  void
+*/
 void Player::setupPlayer()
 {
   clues_found = new int[0];
   direction = SOUTH;
   moving = false;
   number_clues_found = 0;
-  number_puzzles_solved = 0;
-  puzzles_solved = new int[0];
   sprite_index = 0;
   GameObject new_player_gameobject;
   new_player_gameobject.setMySpriteId(0);
@@ -381,13 +480,26 @@ void Player::setupPlayer()
   new_location.y = GAME_HEIGHT / 2  - GRID_SIZE / 2;
   new_player_gameobject.setMyLocation(new_location);
   setPlayerGameobject(new_player_gameobject);
-  for (int i =0; i < 15; i++)
+  int range[15] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+  for (int i : range)
   {
     GameObject new_gameobject;
     new_gameobject.setMySpriteId(-1);
     inventory[i].setMyGameObject(new_gameobject);
-    inventory[i].setItemName("");
-    inventory[i].setItemDescription("");
     inventory[i].setItemID(-1);
   }
+}
+
+bool Player::hasItem(int item_id)
+{
+  bool has_item = false;
+  int range[15] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14};
+  for (int i : range)
+  {
+    if(inventory[i].getItemID() == item_id)
+    {
+      has_item = true;
+    }
+  }
+  return has_item;
 }
