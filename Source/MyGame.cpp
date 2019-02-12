@@ -11,7 +11,14 @@
 #include <Engine/Platform.h>
 #include <Engine/Sprite.h>
 
+#include "soloud.h"
+#include "soloud_wav.h"
+#include "soloud_speech.h"
+#include "soloud_thread.h"
+
+
 #include "MyGame.h"
+
 
 /**
 *   @brief   Initialises the game
@@ -72,6 +79,7 @@ bool MyGame::init()
 */
 void MyGame::setupGame()
 {
+
   splash_screen = renderer->createRawSprite();
   splash_screen->loadTexture("/data/Splash.png");
   splash_screen->width((GAME_WIDTH * 0.5f));
@@ -155,7 +163,38 @@ void MyGame::setupGame()
   exit_check[1] = 0;
   exit_check[2] = 0;
   game_state = SPLASH_SCREEN;
+
+  //gSoloud.playBackground(gWave,1,1,0); // Play the wave
   main_menu_option = NEW_GAME;
+
+
+  SoLoud::Soloud ggsoloud;  // SoLoud engine core
+  SoLoud::Wav gWave;      // One wave file
+
+  using File = ASGE::FILEIO::File;
+  File  file = File();
+
+// attempt to open save data file
+  if( file.open( "/data/CRASH.mp3",
+                 ASGE::FILEIO::File::IOMode::READ))
+  {
+    using Buffer = ASGE::FILEIO::IOBuffer;
+    Buffer buffer;
+    buffer = file.read();
+    uint16_t string_length = static_cast<uint16_t>(buffer.length);
+
+    // Configure sound source
+    gWave.loadMem(buffer.as_unsigned_char(), string_length, true, true);
+  }
+  // initialize SoLoud.
+  ggsoloud.init();
+
+  // Play the sound source (we could do this several times if we wanted)
+  ggsoloud.play(gWave);
+  // Wait until sounds have
+
+  // Clean up SoLoud
+
 }
 
 /**
@@ -497,7 +536,7 @@ void MyGame::setupForegroundSprites()
       case STORAGE_CRATE :
         foreground_sprites[i] = renderer->createRawSprite();
         foreground_sprites[i]->loadTexture
-                                 ("/data/Room_Sprites/Objects/storage_crate.png");
+                                 ("/data/Room_Sprites/Objects/movable_crate.png");
         break;
       case SYNTH_TOP_LEFT :
         foreground_sprites[i] = renderer->createRawSprite();
@@ -850,7 +889,7 @@ void MyGame::setupMovableSprites()
       case 0 :
         movable_sprites[i] = renderer->createRawSprite();
         movable_sprites[i]->loadTexture
-                              ("/data/Room_Sprites/Objects/movable_crate.png");
+                              ("/data/Room_Sprites/Objects/storage_crate.png");
         break;
       default:
         break;
@@ -1050,7 +1089,9 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
         game_state = IN_GAME;
         break;
       case EXIT_GAME:
-        exitGame();
+
+        saveGame();
+        signalExit();
         break;
       default:
         break;
@@ -1274,10 +1315,12 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
         game_state = IN_GAME;
         break;
       case SAVE_GAME:
-        //saveGame();
+        saveGame();
         break;
       case QUIT_GAME:
-        exitGame();
+        saveGame();
+        signalExit();
+
         break;
       default:
         break;
@@ -1325,6 +1368,10 @@ void MyGame::updateSplash(double dt_sec)
   if (splash_screen->xPos() < 0.f)
   {
     game_state = MAIN_MENU;
+
+
+    // All done.
+
   }
 
 }
@@ -1487,6 +1534,31 @@ void MyGame::renderSplash()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
   renderer->renderSprite(*splash_screen);
+  //ggsoloud.deinit();
+
+
+  SoLoud::Soloud soloud;  // SoLoud engine core
+  SoLoud::Speech speech;  // A sound source (speech, in this case)
+
+  // Configure sound source
+  speech.setText("1 2 3   1 2 3   Hello world. Welcome to So-Loud.");
+
+  // initialize SoLoud.
+  soloud.init();
+
+  // Play the sound source (we could do this several times if we wanted)
+  soloud.play(speech);
+
+  // Wait until sounds have finished
+  if (soloud.getActiveVoiceCount() > 0)
+  {
+    // Still going, sleep for a bit
+    SoLoud::Thread::sleep(100);
+  }
+
+  // Clean up SoLoud
+  soloud.deinit();
+
 }
 
 /**
@@ -1799,7 +1871,7 @@ switch(exit_check[2])
     renderer->renderText("Dragging yourself out of the waste pile, you take a "
                          "moment to contemplate.",
                          200, 100,1, ASGE::COLOURS::WHITESMOKE);
-    if(player_one.getNumberCluesFound() == 9)
+    if(player_one.getNumberCluesFound() == NUM_CLUES)
     {
       renderer->renderText("You know that something has gone horribly wrong "
                            "with FIBI's programming. \nThe revelation that she "
@@ -1828,7 +1900,7 @@ switch(exit_check[2])
     renderer->renderText("You emerge from Reception in to the night. Just as "
                          "you think you are \nalone you feel the air move behind you.",
                          200, 100, 1, ASGE::COLOURS::WHITESMOKE);
-    if(player_one.getNumberCluesFound() == 10 && player_one.hasItem(8))
+    if(player_one.getNumberCluesFound() == NUM_CLUES && player_one.hasItem(8))
     {
       renderer->renderText("You are prepared and composed. You say hello to FIBI "
                            "who then runs to you. \nYou catch her by surprise "
@@ -1840,7 +1912,7 @@ switch(exit_check[2])
                            "the Password you found earlier.",
                            260, 220, 1, ASGE::COLOURS::WHITESMOKE);
     }
-    else if(player_one.getNumberCluesFound() == 10 && !player_one.hasItem(8))
+    else if(player_one.getNumberCluesFound() == NUM_CLUES && !player_one.hasItem(8))
     {
       renderer->renderText("You are prepared and composed. You say hello to FIBI "
                            "who then runs to you. \nWith no other way to destroy "
@@ -1964,7 +2036,7 @@ void MyGame::renderInventory()
 *   @param   none
 *   @return  void
 */
-void MyGame::exitGame()
+void MyGame::saveGame()
 {
 
   ASGE::FILEIO::setWriteDir(".");
@@ -2003,7 +2075,6 @@ int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
     visited_rooms[i].saveRoom();
   }
   player_one.savePlayerData();
-  signalExit();
 }
 
 /**
@@ -2062,7 +2133,7 @@ void MyGame::setupRoomOne()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
   auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                  (GRID_SIZE*
                                   (static_cast<float>(new_grid_size_x)*0.5f)));
@@ -4096,7 +4167,7 @@ void MyGame::setupRoomFourteen()
   new_puzzle.setTargetMovableLocations(new_target_movable_locations);
 
   std::string new_puzzle_solved_message = "You open the door"
-                                          " using the green keycard";
+                                          " using the yellow keycard";
   new_puzzle.setPuzzleSolvedMessage(new_puzzle_solved_message);
 
   new_puzzle.setPuzzleID(5);
@@ -4190,7 +4261,7 @@ void MyGame::setupRoomFifteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
   auto left_side = static_cast<float>(GAME_WIDTH*0.5-
                                        (GRID_SIZE*
                                         (static_cast<float>(
@@ -5225,7 +5296,14 @@ void MyGame::setupRoomTwentyOne()
   }
   new_room.setMyForeground(new_foreground);
 
-  new_room.setNumberClues(0);
+  new_room.setNumberClues(1);
+  new_clues = new Clue[new_room.getNumberClues()];
+  for (int i = 0; i < new_room.getNumberClues(); i++)
+  {
+    GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 2];
+    new_gameobject.setMySpriteId(1);
+    new_clues[i] = Clue(new_gameobject, 10);
+  }
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(3);
@@ -5234,7 +5312,7 @@ void MyGame::setupRoomTwentyOne()
   {
     if (i == 0)
     {
-      GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x * 3 + 7 ];
+      GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x* 3 + 7 ];
       Point2D new_location;
       new_location = new_gameobject.getMyLocation();
       new_items[i] = Item(GameObject(HAMMER, new_location), 8);

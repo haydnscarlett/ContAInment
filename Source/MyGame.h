@@ -6,6 +6,10 @@
 #define HELLOASGE_MYGAME_H
 
 #include <Engine/OGLGame.h>
+#include "soloud.h"
+#include "soloud_wav.h"
+#include "soloud_speech.h"
+#include "soloud_thread.h"
 #include "Room.h"
 #include "Constants.h"
 
@@ -83,7 +87,7 @@ class MyGame : public ASGE::OGLGame
   void renderMap();
 
 
-  void exitGame();
+  void saveGame();
   void loadGame();
 
 
@@ -110,11 +114,11 @@ class MyGame : public ASGE::OGLGame
   ASGE::Sprite* exit_sprites[NUM_EXIT_SPRITES];
   ASGE::Sprite* item_sprites[NUM_ITEM_SPRITES];
   ASGE::Sprite* player_sprites[NUM_PLAYER_SPRITES];
-Player player_one;
-Room current_room;
-Room visited_rooms[NUM_ROOMS];
+  Player player_one;
+  Room current_room;
+  Room visited_rooms[NUM_ROOMS];
 
-double animation_counter;
+  double animation_counter;
   int game_state;
   int main_menu_option;
   int pause_menu_option;
@@ -123,6 +127,7 @@ double animation_counter;
   bool power_on;
   bool change_room;
   int exit_check[3];
+
 };
 
 #endif // HELLOASGE_MYGAME_H

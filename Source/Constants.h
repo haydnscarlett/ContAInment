@@ -16,7 +16,7 @@ enum{CONTINUE_GAME, SAVE_GAME, QUIT_GAME};
 // directions
 enum{NORTH, EAST, SOUTH, WEST};
 // foreground sprites
-enum{COUNTER_LEFT, COUNTER_RIGHT, TABLE_TOP, TABLE_MIDDLE, TABLE_BOTTOM,
+enum {COUNTER_LEFT, COUNTER_RIGHT, TABLE_TOP, TABLE_MIDDLE, TABLE_BOTTOM,
   FRIDGE_TOP, SINK_TOP, TABLE_LEFT, TABLE_CENTRE, TABLE_RIGHT, CHAIR_TOP,
   CHAIR_BOTTOM, COOKER_TOP, CAFE_TABLE_LEFT, CAFE_TABLE_RIGHT, SOFA_TOP_LEFT,
   SOFA_TOP_RIGHT, SOFA_LEFT_TOP, SOFA_LEFT_BOTTOM, SOFA_RIGHT_TOP,
@@ -55,7 +55,7 @@ const int NUM_SWITCH_SPRITES = 1;
 const int NUM_EXIT_SPRITES = 4;
 const int NUM_MOVABLE_SPRITES = 1;
 const int NUM_PLAYER_SPRITES = 16;
-
+const int NUM_CLUES = 11;
 // number of rooms in the game
 const int NUM_ROOMS = 25;
 
@@ -94,7 +94,7 @@ const std::string ITEM_DESCRIPTIONS[13] = { "You found a screwdriver.",
                                             "You found a red keycard.",
                                             "You found a green keycard.",
                                             "You found a Magnifying glass." };
-const std::string CLUES[10] = { "There is no power." ,
+const std::string CLUES[NUM_CLUES] = { "There is no power." ,
                                 "There is a spare reactor fuse in the lab "
                                 "coat in the garden, did you leave "
                                 "it there \n""on purpose?" ,
@@ -119,4 +119,4 @@ const std::string CLUES[10] = { "There is no power." ,
                                 "is resolved.",
                                 "Keycards: Red = Emergency exit from Atrium,"
                                 " Green = Waste Disposal, \nYellow = Labs,"
-                                " Blue = Reception Exit"};
+                                " Blue = Reception Exit", "10101"};

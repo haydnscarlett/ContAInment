@@ -110,8 +110,12 @@ if (WIN32 AND NOT BUILD_SHARED_LIBS AND NOT MSVC)
     target_link_libraries(${PROJECT_NAME} -static)
 endif()
 
-## utility scripts
-include(CMake/datpak.cmake)
 
 ## build types
 set(CMAKE_CONFIGURATION_TYPES Debug;Release)
+
+ # Fetch the soloud project and link to it. We need to FORCE the engine on.
+SET(ENABLE_SOUND ON CACHE BOOL "Adds SoLoud to the project" FORCE)
+## utility scripts
+include(CMake/datpak.cmake)
+target_link_libraries(${PROJECT_NAME} soloud)
