@@ -5,13 +5,13 @@
 #ifndef HELLOASGE_MYGAME_H
 #define HELLOASGE_MYGAME_H
 
-#include <Engine/OGLGame.h>
+#include "Constants.h"
+#include "Room.h"
 #include "soloud.h"
-#include "soloud_wav.h"
 #include "soloud_speech.h"
 #include "soloud_thread.h"
-#include "Room.h"
-#include "Constants.h"
+#include "soloud_wav.h"
+#include <Engine/OGLGame.h>
 
 class MyGame : public ASGE::OGLGame
 {
@@ -20,10 +20,7 @@ class MyGame : public ASGE::OGLGame
 
   bool init() override;
 
-
   void update(const ASGE::GameTime& game_time) override;
-
-
 
   void render(const ASGE::GameTime& game_time) override;
 
@@ -64,7 +61,6 @@ class MyGame : public ASGE::OGLGame
   void setupMovableSprites();
   void setupPlayerSprites();
 
-
   void keyHandler(ASGE::SharedEventData data);
   void keyHandlerMainMenu(const ASGE::KeyEvent* key);
   void keyHandlerInGame(const ASGE::KeyEvent* key);
@@ -86,13 +82,10 @@ class MyGame : public ASGE::OGLGame
   void renderClues();
   void renderMap();
 
-
   void saveGame();
   void loadGame();
 
-
-
-  int  key_callback_id = -1;	        /**< Key Input Callback ID. */
+  int key_callback_id = -1; /**< Key Input Callback ID. */
 
   ASGE::Sprite* splash_screen = nullptr;
   ASGE::Sprite* main_menu = nullptr;
@@ -128,6 +121,8 @@ class MyGame : public ASGE::OGLGame
   bool change_room;
   int exit_check[3];
 
+  SoLoud::Soloud soloud; // SoLoud engine core
+  SoLoud::Speech speech; // A sound source (speech, in this case)
 };
 
 #endif // HELLOASGE_MYGAME_H
