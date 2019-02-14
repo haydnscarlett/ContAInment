@@ -64,6 +64,12 @@ bool MyGame::init()
   setupRoomTwentyFour();
   setupRoomTwentyFive();
 
+  // Configure sound source
+  speech.setText("Welcome to containment");
+
+  // initialize SoLoud.
+  soloud.init();
+
   current_room = visited_rooms[OFFICE_ONE];
   inputs->use_threads = false;
   key_callback_id = inputs->addCallbackFnc(
@@ -1368,7 +1374,18 @@ void MyGame::updateSplash(double dt_sec)
   if (splash_screen->xPos() < 0.f)
   {
     game_state = MAIN_MENU;
+// Play the sound source (we could do this several times if we wanted)
+    soloud.play(speech);
 
+    // Wait until sounds have finished
+    if (soloud.getActiveVoiceCount() > 0)
+    {
+      // Still going, sleep for a bit
+      SoLoud::Thread::sleep(100);
+    }
+
+    // Clean up SoLoud
+    //soloud.deinit();
 
     // All done.
 
@@ -1537,27 +1554,12 @@ void MyGame::renderSplash()
   //ggsoloud.deinit();
 
 
-  SoLoud::Soloud soloud;  // SoLoud engine core
-  SoLoud::Speech speech;  // A sound source (speech, in this case)
 
-  // Configure sound source
-  speech.setText("1 2 3   1 2 3   Hello world. Welcome to So-Loud.");
 
-  // initialize SoLoud.
-  soloud.init();
 
-  // Play the sound source (we could do this several times if we wanted)
-  soloud.play(speech);
 
-  // Wait until sounds have finished
-  if (soloud.getActiveVoiceCount() > 0)
-  {
-    // Still going, sleep for a bit
-    SoLoud::Thread::sleep(100);
-  }
 
-  // Clean up SoLoud
-  soloud.deinit();
+
 
 }
 
@@ -2084,7 +2086,7 @@ int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
 *   @return  void
 */
 void MyGame::loadGame()
-{
+ {
 
   int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
   for (int i : range)
@@ -5300,7 +5302,7 @@ void MyGame::setupRoomTwentyOne()
   new_clues = new Clue[new_room.getNumberClues()];
   for (int i = 0; i < new_room.getNumberClues(); i++)
   {
-    GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 2];
+    GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 12];
     new_gameobject.setMySpriteId(1);
     new_clues[i] = Clue(new_gameobject, 10);
   }
