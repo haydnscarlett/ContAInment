@@ -2,30 +2,32 @@
 // Created by haydn on 20/01/2019.
 //
 
-#include "GameObject.h"
 #include "Clue.h"
+#include "Exit.h"
+#include "GameObject.h"
 #include "Item.h"
 #include "Puzzle.h"
-#include "Exit.h"
+#include "soloud.h"
+#include "soloud_wav.h"
 
 #ifndef EXMACHINA_ROOM_H
-#define EXMACHINA_ROOM_H
+#  define EXMACHINA_ROOM_H
 
 class Room
 {
  public:
-  GameObject* getMyBackground() ;
+  GameObject* getMyBackground();
   void setMyBackground(GameObject* new_background);
-  GameObject* getMyForeground() ;
+  GameObject* getMyForeground();
   void setMyForeground(GameObject* new_foreground);
-  GameObject* getMyWalls() ;
+  GameObject* getMyWalls();
   void setMyWalls(GameObject* new_walls);
-  Clue* getMyClues() ;
+  Clue* getMyClues();
   void setMyClues(Clue* new_clues);
-  Item* getMyItems() ;
+  Item* getMyItems();
   void setMyItems(Item* new_items);
-  Puzzle getMyPuzzle() ;
-  void setMyPuzzle(const Puzzle &new_puzzle);
+  Puzzle getMyPuzzle();
+  void setMyPuzzle(const Puzzle& new_puzzle);
   int getRoomID();
   void setRoomID(int new_id);
   Exit* getMyExits();
@@ -46,10 +48,13 @@ class Room
   bool checkCollisions(Player* player, bool add_item_check);
   bool checkMovableCollisions(Player* player, bool add_item_check);
   void resetRoomPosition(Point2D distance);
-  bool checkForInteractables(Player* player, std::string* text_to_display,
-                             bool* power_on);
-  void checkExits(Player* player, std::string* text_to_display,
-                        int* game_state, bool power_on, int* exit_check);
+  bool checkForInteractables(Player* player,
+                             std::string* text_to_display,
+                             bool* power_on,
+                             SoLoud::Wav switch_sound,
+                             SoLoud::Wav discovery_sound);
+  void checkExits(
+    Player* player, std::string* text_to_display, int* game_state, bool power_on, int* exit_check);
   void saveRoom();
   void loadRoom();
   void setupFloorStandard();
@@ -69,7 +74,6 @@ class Room
   int number_of_exits;
   int my_gridsize_x;
   int my_gridsize_y;
-
 };
 
-#endif //EXMACHINA_ROOM_H
+#endif // EXMACHINA_ROOM_H

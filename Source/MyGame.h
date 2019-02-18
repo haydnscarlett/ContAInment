@@ -121,8 +121,15 @@ class MyGame : public ASGE::OGLGame
   bool change_room;
   int exit_check[3];
 
-  SoLoud::Soloud soloud; // SoLoud engine core
-  SoLoud::Speech speech; // A sound source (speech, in this case)
+  SoLoud::Soloud soloud;        // SoLoud engine core
+  SoLoud::Speech speech;        // A sound source (speech, in this case)
+  SoLoud::Wav menu_click;       // A sound source (speech, in this case)
+  SoLoud::Wav discovery;        // A sound source (speech, in this case)
+  SoLoud::Wav footsteps[5];     // A sound source (speech, in this case)
+  SoLoud::Wav background_music; // A sound source
+  SoLoud::Wav page_open;
+  SoLoud::Wav page_close;
+  SoLoud::Wav lever;
 };
 
 #endif // HELLOASGE_MYGAME_H

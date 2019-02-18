@@ -2,6 +2,7 @@
 // Created by haydn on 20/01/2019.
 //
 
+#include <soloud.h>
 #include "Room.h"
 
 #include "Constants.h"
@@ -672,11 +673,14 @@ bool Room::checkCollisions(Player* player, bool add_item_check)
 *            room
 */
 bool Room::checkForInteractables(Player* player, std::string* text_to_display,
-                                 bool* power_on)
+                                 bool* power_on,
+                                 SoLoud::Wav switch_sound,
+                                 SoLoud::Wav discovery_sound )
 {
   bool colliding = false;
 
-
+  SoLoud::Soloud *soloud = new SoLoud::Soloud;
+  soloud->init();
   for (int i = 0; i < number_of_clues; i++)
   {
     if(my_clues[i].getMyGameObject().collisionCheck(
@@ -689,6 +693,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
         player->addToClues(my_clues[i].getClueID(), player->getNumberCluesFound());
       }
       *text_to_display = CLUES[my_clues[i].getClueID()];
+       soloud->play(discovery_sound);
       colliding = true;
     }
   }
@@ -717,6 +722,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
                 i = number_of_items;
                 item_added = true;
                 colliding = true;
+                soloud->play(discovery_sound);
               }
             }
             if (!item_added)
@@ -736,6 +742,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
             i = number_of_items;
             item_added = true;
             colliding = true;
+            soloud->play(discovery_sound);
           }
         }
         if (j == 14 && !item_added && !colliding)
@@ -753,6 +760,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
         player->getPlayerGameobject().getMyLocation(), player->getDirection(),
         false))
     {
+      soloud->play(switch_sound);
       my_puzzle.getMySwitches()[i].setOn(!my_puzzle.getMySwitches()[i].isOn());
 
     }
@@ -764,6 +772,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
     *text_to_display = my_puzzle.getPuzzleSolvedMessage();
     colliding = true;
   }
+  soloud->deinit();
   return colliding;
 }
 

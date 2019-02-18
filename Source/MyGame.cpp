@@ -169,37 +169,83 @@ void MyGame::setupGame()
   exit_check[1] = 0;
   exit_check[2] = 0;
   game_state = SPLASH_SCREEN;
-
-  //gSoloud.playBackground(gWave,1,1,0); // Play the wave
   main_menu_option = NEW_GAME;
 
 
-  SoLoud::Soloud ggsoloud;  // SoLoud engine core
-  SoLoud::Wav gWave;      // One wave file
-
-  using File = ASGE::FILEIO::File;
-  File  file = File();
-
-// attempt to open save data file
-  if( file.open( "/data/CRASH.mp3",
-                 ASGE::FILEIO::File::IOMode::READ))
+  ASGE::FILEIO::File file;
+  if (file.open("/data/menu.wav"))
   {
-    using Buffer = ASGE::FILEIO::IOBuffer;
-    Buffer buffer;
-    buffer = file.read();
-    uint16_t string_length = static_cast<uint16_t>(buffer.length);
-
-    // Configure sound source
-    gWave.loadMem(buffer.as_unsigned_char(), string_length, true, true);
+    auto io_buffer = file.read();
+    menu_click.loadMem(io_buffer.as_unsigned_char(),
+                  static_cast<unsigned int>(io_buffer.length), false, false);
   }
-  // initialize SoLoud.
-  ggsoloud.init();
 
-  // Play the sound source (we could do this several times if we wanted)
-  ggsoloud.play(gWave);
-  // Wait until sounds have
 
-  // Clean up SoLoud
+  if (file.open("/data/openpage.wav"))
+  {
+    auto io_buffer = file.read();
+    page_open.loadMem(io_buffer.as_unsigned_char(),
+                  static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+
+  if (file.open("/data/closepage.wav"))
+  {
+    auto io_buffer = file.read();
+    page_close.loadMem(io_buffer.as_unsigned_char(),
+                      static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/lever.wav"))
+  {
+    auto io_buffer = file.read();
+    lever.loadMem(io_buffer.as_unsigned_char(),
+                      static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/sfx_hard_surface_walk_2.wav"))
+  {
+    auto io_buffer = file.read();
+    footsteps[0].loadMem(io_buffer.as_unsigned_char(),
+                  static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+
+  if (file.open("/data/sfx_hard_surface_walk_4.wav"))
+  {
+    auto io_buffer = file.read();
+    footsteps[1].loadMem(io_buffer.as_unsigned_char(),
+                         static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/sfx_wood_walk_3.wav"))
+  {
+    auto io_buffer = file.read();
+    footsteps[2].loadMem(io_buffer.as_unsigned_char(),
+                         static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/sfx_wood_walk_4.wav"))
+  {
+    auto io_buffer = file.read();
+    footsteps[3].loadMem(io_buffer.as_unsigned_char(),
+                         static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/sfx_wood_walk_5.wav"))
+  {
+    auto io_buffer = file.read();
+    footsteps[4].loadMem(io_buffer.as_unsigned_char(),
+                         static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/discovery.wav"))
+  {
+    auto io_buffer = file.read();
+    discovery.loadMem(io_buffer.as_unsigned_char(),
+                         static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
 
 }
 
@@ -1014,6 +1060,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
        && key->action == ASGE::KEYS::KEY_PRESSED)
     {
 
+      soloud.play(menu_click);
       game_state = IN_GAME;
     }
   }
@@ -1038,6 +1085,8 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
         || key->key == ASGE::KEYS::KEY_J) &&
        key->action == ASGE::KEYS::KEY_PRESSED)
     {
+      //page turn
+      soloud.play(menu_click);
       game_state = IN_GAME;
     }
   }
@@ -1047,6 +1096,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
         || key->key == ASGE::KEYS::KEY_M) &&
        key->action == ASGE::KEYS::KEY_PRESSED)
     {
+      soloud.play(menu_click);
       game_state = IN_GAME;
     }
   }
@@ -1062,11 +1112,13 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
 {
   if (key->key == ASGE::KEYS::KEY_ESCAPE)
   {
+    soloud.deinit();
     signalExit();
   }
   else if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     main_menu_option--;
     if (main_menu_option < NEW_GAME)
     {
@@ -1076,6 +1128,7 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
   else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     main_menu_option++;
     if (main_menu_option > EXIT_GAME)
     {
@@ -1085,6 +1138,7 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_ENTER
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     switch(main_menu_option)
     {
       case NEW_GAME:
@@ -1096,6 +1150,7 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
         break;
       case EXIT_GAME:
 
+        soloud.deinit();
         saveGame();
         signalExit();
         break;
@@ -1144,12 +1199,14 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_P &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     pause_menu_option = CONTINUE_GAME;
     game_state = PAUSE;
   }
   else if(key->key == ASGE::KEYS::KEY_I &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option = 0;
     game_state = INVENTORY;
   }
@@ -1157,19 +1214,22 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     if (current_room.checkForInteractables(&player_one, &text_to_display,
-                                           &power_on))
+                                           &power_on, lever, discovery))
     {
+      //discovery
       game_state = TEXT_DISPLAY;
     }
   }
   else if(key->key == ASGE::KEYS::KEY_J &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     game_state = JOURNAL;
   }
   else if(key->key == ASGE::KEYS::KEY_M &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);//page turn
     game_state = MAP;
   }
   else
@@ -1189,6 +1249,7 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
   if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
      && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option -= 5;
     if (inventory_menu_option < 0)
     {
@@ -1198,6 +1259,7 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
   else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option += 5;
     if (inventory_menu_option > 14)
     {
@@ -1207,6 +1269,7 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
   else if((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option--;
     if (inventory_menu_option < 0)
     {
@@ -1216,6 +1279,7 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
   else if((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option++;
     if (inventory_menu_option > 14)
     {
@@ -1225,6 +1289,7 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_I &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     inventory_menu_option = 0;
     game_state = IN_GAME;
   }
@@ -1275,7 +1340,8 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
         new_item.setMyGameObject(new_gameobject);
         new_item.setItemID(-1);
         player_one.addToInventory(new_item, inventory_menu_option);
-
+//drop item sound
+        soloud.play(footsteps[4]);
       }
       else
       {
@@ -1297,6 +1363,7 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
   if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
      && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     pause_menu_option--;
     if (pause_menu_option < CONTINUE_GAME)
     {
@@ -1306,6 +1373,7 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
   else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     pause_menu_option++;
     if (pause_menu_option > QUIT_GAME)
     {
@@ -1315,6 +1383,7 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_ENTER
           && key->action == ASGE::KEYS::KEY_PRESSED)
   {
+    soloud.play(menu_click);
     switch(pause_menu_option)
     {
       case CONTINUE_GAME:
@@ -1324,6 +1393,7 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
         saveGame();
         break;
       case QUIT_GAME:
+        soloud.deinit();
         saveGame();
         signalExit();
 
@@ -1384,10 +1454,7 @@ void MyGame::updateSplash(double dt_sec)
       SoLoud::Thread::sleep(100);
     }
 
-    // Clean up SoLoud
-    //soloud.deinit();
 
-    // All done.
 
   }
 
@@ -2077,6 +2144,9 @@ int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
     visited_rooms[i].saveRoom();
   }
   player_one.savePlayerData();
+  // Clean up SoLoud
+
+  // All done.
 }
 
 /**
