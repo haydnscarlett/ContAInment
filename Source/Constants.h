@@ -1,6 +1,7 @@
 //
 // Created by haydn on 20/01/2019.
 //
+#include <string>
 
 #ifndef EXMACHINA_CONSTANTS_H
 #  define EXMACHINA_CONSTANTS_H
