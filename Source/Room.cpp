@@ -672,15 +672,11 @@ bool Room::checkCollisions(Player* player, bool add_item_check)
 *   @return  bool Whether the player is interacting with an object in the
 *            room
 */
-bool Room::checkForInteractables(Player* player, std::string* text_to_display,
-                                 bool* power_on,
-                                 SoLoud::Wav switch_sound,
-                                 SoLoud::Wav discovery_sound )
+int Room::checkForInteractables(Player* player, std::string* text_to_display,
+                                 bool* power_on )
 {
-  bool colliding = false;
+  int colliding = false;
 
-  SoLoud::Soloud *soloud = new SoLoud::Soloud;
-  soloud->init();
   for (int i = 0; i < number_of_clues; i++)
   {
     if(my_clues[i].getMyGameObject().collisionCheck(
@@ -693,8 +689,7 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
         player->addToClues(my_clues[i].getClueID(), player->getNumberCluesFound());
       }
       *text_to_display = CLUES[my_clues[i].getClueID()];
-       soloud->play(discovery_sound);
-      colliding = true;
+      colliding = 1;
     }
   }
   bool item_added = false;
@@ -721,14 +716,13 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
                 j = 15;
                 i = number_of_items;
                 item_added = true;
-                colliding = true;
-                soloud->play(discovery_sound);
+                colliding = 1;
               }
             }
             if (!item_added)
             {
               *text_to_display = "You do not know the code.";
-              colliding = true;
+              colliding = 1;
             }
 
           }
@@ -741,14 +735,13 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
             j = 15;
             i = number_of_items;
             item_added = true;
-            colliding = true;
-            soloud->play(discovery_sound);
+            colliding = 1;
           }
         }
         if (j == 14 && !item_added && !colliding)
         {
           *text_to_display = "Inventory full. Please drop something first.";
-          colliding = true;
+          colliding = 1;
         }
 
       }
@@ -760,9 +753,9 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
         player->getPlayerGameobject().getMyLocation(), player->getDirection(),
         false))
     {
-      soloud->play(switch_sound);
       my_puzzle.getMySwitches()[i].setOn(!my_puzzle.getMySwitches()[i].isOn());
 
+      colliding = 2;
     }
   }
    if(my_puzzle.checkPuzzleCompleted(player, power_on) && !*power_on &&
@@ -770,9 +763,8 @@ bool Room::checkForInteractables(Player* player, std::string* text_to_display,
   {
     *power_on = true;
     *text_to_display = my_puzzle.getPuzzleSolvedMessage();
-    colliding = true;
+    colliding = 1;
   }
-  soloud->deinit();
   return colliding;
 }
 

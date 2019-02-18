@@ -1236,11 +1236,16 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_SPACE &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    if (current_room.checkForInteractables(&player_one, &text_to_display,
-                                           &power_on, lever, discovery))
+    int interactable_type = current_room.checkForInteractables(&player_one,
+        &text_to_display, &power_on);
+    if (interactable_type == 1)
     {
-      //discovery
+      soloud.play(discovery);
       game_state = TEXT_DISPLAY;
+    }
+    else if (interactable_type == 2)
+    {
+      soloud.play(lever);
     }
   }
   else if(key->key == ASGE::KEYS::KEY_J &&
