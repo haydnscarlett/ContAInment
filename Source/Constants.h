@@ -18,7 +18,8 @@ enum
   INVENTORY,
   GAME_OVER,
   JOURNAL,
-  MAP
+  MAP,
+  CONTROLS
 };
 // main menu options
 enum

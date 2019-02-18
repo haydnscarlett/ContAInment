@@ -81,6 +81,7 @@ class MyGame : public ASGE::OGLGame
   void renderInventory();
   void renderClues();
   void renderMap();
+  void renderControls();
 
   void saveGame();
   void loadGame();
@@ -96,6 +97,7 @@ class MyGame : public ASGE::OGLGame
   ASGE::Sprite* inventory_screen = nullptr;
   ASGE::Sprite* inventory_highlighter = nullptr;
   ASGE::Sprite* map = nullptr;
+  ASGE::Sprite* journal = nullptr;
 
   ASGE::Sprite* floor_sprites[NUM_FLOOR_SPRITES];
   ASGE::Sprite* wall_sprites[NUM_WALL_SPRITES];
@@ -121,6 +123,10 @@ class MyGame : public ASGE::OGLGame
   bool change_room;
   int exit_check[3];
   float background_volume = 0.5f;
+  unsigned int handle_1;
+  unsigned int handle_2;
+  unsigned int handle_3;
+  unsigned int handle_4;
 
   SoLoud::Soloud soloud;        // SoLoud engine core
   SoLoud::Speech speech;        // A sound source (speech, in this case)
@@ -132,6 +138,9 @@ class MyGame : public ASGE::OGLGame
   SoLoud::Wav page_close;
   SoLoud::Wav lever;
   SoLoud::Wav background_music_1;
+  SoLoud::Wav intro_sfx;
+
+  bool play_step;
 };
 
 #endif // HELLOASGE_MYGAME_H

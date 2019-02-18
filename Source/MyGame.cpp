@@ -28,7 +28,6 @@
 */
 bool MyGame::init()
 {
-
   game_name = "ContAInment";
   game_height = static_cast<int>(GAME_HEIGHT);
   game_width = static_cast<int>(GAME_WIDTH);
@@ -152,6 +151,13 @@ void MyGame::setupGame()
   map->xPos(0.0f);
   map->yPos(0.0f);
 
+  journal = renderer->createRawSprite();
+  journal->loadTexture("/data/Journal.png");
+  journal->width(GAME_WIDTH);
+  journal->height(GAME_HEIGHT);
+  journal->xPos(0.0f);
+  journal->yPos(0.0f);
+
 
   setupFloorSprites();
   setupWallSprites();
@@ -262,6 +268,15 @@ void MyGame::setupGame()
   }
   background_music.setLooping(1);
   background_music_1.setLooping(1);
+
+  if (file.open("/data/intro.wav"))
+  {
+    auto io_buffer = file.read();
+    intro_sfx.loadMem(io_buffer.as_unsigned_char(),
+                               static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  soloud.play(intro_sfx);
 
 
 }
@@ -1050,7 +1065,33 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
 {
   auto key = reinterpret_cast<const ASGE::KeyEvent*>(data.get());
 
-  if (key->key == ASGE::KEYS::KEY_ENTER &&
+  if (key->key == ASGE::KEYS::KEY_0 &&
+      key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    if(background_volume<1.0f)
+    {
+      background_volume = background_volume+0.1f;
+      soloud.setVolume(handle_1, background_volume);
+      soloud.setVolume(handle_2, background_volume);
+      soloud.setVolume(handle_3, background_volume);
+      soloud.setVolume(handle_4, background_volume);
+    }
+  }
+
+  if (key->key == ASGE::KEYS::KEY_9 &&
+      key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    if(background_volume>0.0f)
+    {
+      background_volume = background_volume-0.1f;
+      soloud.setVolume(handle_1, background_volume);
+      soloud.setVolume(handle_2, background_volume);
+      soloud.setVolume(handle_3, background_volume);
+      soloud.setVolume(handle_4, background_volume);
+    }
+  }
+
+    if (key->key == ASGE::KEYS::KEY_ENTER &&
       key->action == ASGE::KEYS::KEY_PRESSED &&
       key->mods == 0x0004)
   {
@@ -1078,7 +1119,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
        && key->action == ASGE::KEYS::KEY_PRESSED)
     {
 
-      soloud.play(menu_click);
+       soloud.play(menu_click);
       game_state = IN_GAME;
     }
   }
@@ -1118,6 +1159,16 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
       game_state = IN_GAME;
     }
   }
+    else if (game_state == CONTROLS)
+    {
+      if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
+          || key->key == ASGE::KEYS::KEY_C) &&
+         key->action == ASGE::KEYS::KEY_PRESSED)
+      {
+        soloud.play(page_close);
+        game_state = IN_GAME;
+      }
+    }
 }
 
 /**
@@ -1162,8 +1213,9 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
       case NEW_GAME:
         game_state = TEXT_DISPLAY;
         soloud.stopAll();
-        soloud.play(background_music, background_volume);
+        handle_1 = soloud.play(background_music);
         break;
+
       case LOAD_GAME:
         loadGame();
         game_state = IN_GAME;
@@ -1223,7 +1275,7 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
     pause_menu_option = CONTINUE_GAME;
     game_state = PAUSE;
     soloud.stopAll();
-    soloud.play(background_music_1, background_volume);
+   handle_2 = soloud.play(background_music_1);
 
   }
   else if(key->key == ASGE::KEYS::KEY_I &&
@@ -1259,6 +1311,12 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
   {
     soloud.play(page_close);//page turn
     game_state = MAP;
+  }
+  else if(key->key == ASGE::KEYS::KEY_C &&
+          key->action == ASGE::KEYS::KEY_PRESSED)
+  {
+    soloud.play(page_close);//page turn
+    game_state = CONTROLS;
   }
   else
   {
@@ -1417,7 +1475,7 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
       case CONTINUE_GAME:
         game_state = IN_GAME;
         soloud.stopAll();
-        soloud.play(background_music, background_volume);
+        handle_3 = soloud.play(background_music, background_volume);
         break;
       case SAVE_GAME:
         saveGame();
@@ -1478,7 +1536,7 @@ void MyGame::updateSplash(double dt_sec)
     soloud.play(speech);
 
     soloud.stopAll();
-    soloud.play(background_music_1, background_volume);
+    handle_4 = soloud.play(background_music_1, background_volume);
 
 
   }
@@ -1521,6 +1579,13 @@ void MyGame::updateInGame(double dt_sec)
   player_one.movePlayer(animation_counter);
   if(animation_counter > 0.08)
   {
+    if (player_one.isMoving())
+    {
+      if (player_one.getSpriteIndex() % 4 == 0)
+      {
+        soloud.play(footsteps[0]);
+      }
+    }
     current_room.moveRoom(&player_one);
     animation_counter = 0.0;
   }
@@ -1628,6 +1693,9 @@ void MyGame::render(const ASGE::GameTime& game_time)
     case MAP:
       renderMap();
       break;
+    case CONTROLS:
+      renderControls();
+      break;
     default:
       break;
   }
@@ -1670,7 +1738,8 @@ void MyGame::renderMainMenu()
     default:
       break;
   }
-
+  renderer->renderText("Press C in game for controls",
+                       game_width - 450, game_height - 75, 1, ASGE::COLOURS::WHITESMOKE);
   renderer->renderSprite(*main_menu_icon);
 }
 
@@ -1925,6 +1994,29 @@ void MyGame::renderMap()
 {
   renderer->renderSprite(*map);
 }
+/**
+*   @brief   Render Pause
+*   @details This function is used to render the Pause Menu.
+*   @param   none
+*   @return  void
+*/
+void MyGame::renderControls()
+{
+  renderer->renderSprite(*journal);
+
+  renderer->renderText("     CONTROLS:\n"
+      "9 - Reduce volume\n"
+                       "0 - Increase volume\n"
+ "P - Pause menu\n"
+  "M - Map\n"
+  "J - Journal\n"
+  "I - Inventory\n"
+  "Space - Interact\n"
+  "enter - Confirm text\n"
+  "WASD or arrow keys to walk",
+                       200, 200, 1, ASGE::COLOURS::BLACK);
+
+}
 
 /**
 *   @brief   Render GameOver
@@ -2035,11 +2127,12 @@ switch(exit_check[2])
 void MyGame::renderClues()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
+  renderer->renderSprite(*journal);
   int display_height = 40;
   for(int i = 0; i < player_one.getNumberCluesFound(); i++)
   {
     renderer->renderText(CLUES[player_one.getClueFound(i)],
-                         200, display_height, 0.75, ASGE::COLOURS::WHITESMOKE);
+                         200, display_height, 0.75, ASGE::COLOURS::BLACK);
     display_height+= 60;
   }
 }
