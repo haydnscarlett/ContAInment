@@ -1086,7 +1086,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
        key->action == ASGE::KEYS::KEY_PRESSED)
     {
       //page turn
-      soloud.play(menu_click);
+      soloud.play(page_close);
       game_state = IN_GAME;
     }
   }
@@ -1096,7 +1096,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
         || key->key == ASGE::KEYS::KEY_M) &&
        key->action == ASGE::KEYS::KEY_PRESSED)
     {
-      soloud.play(menu_click);
+      soloud.play(page_close);
       game_state = IN_GAME;
     }
   }
@@ -1223,13 +1223,13 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
   else if(key->key == ASGE::KEYS::KEY_J &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    soloud.play(menu_click);
+    soloud.play(page_close);
     game_state = JOURNAL;
   }
   else if(key->key == ASGE::KEYS::KEY_M &&
           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    soloud.play(menu_click);//page turn
+    soloud.play(page_close);//page turn
     game_state = MAP;
   }
   else
