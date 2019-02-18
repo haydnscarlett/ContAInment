@@ -120,6 +120,7 @@ class MyGame : public ASGE::OGLGame
   bool power_on;
   bool change_room;
   int exit_check[3];
+  float background_volume = 0.5f;
 
   SoLoud::Soloud soloud;        // SoLoud engine core
   SoLoud::Speech speech;        // A sound source (speech, in this case)
@@ -130,6 +131,7 @@ class MyGame : public ASGE::OGLGame
   SoLoud::Wav page_open;
   SoLoud::Wav page_close;
   SoLoud::Wav lever;
+  SoLoud::Wav background_music_1;
 };
 
 #endif // HELLOASGE_MYGAME_H

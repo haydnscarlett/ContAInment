@@ -169,6 +169,7 @@ void MyGame::setupGame()
   exit_check[1] = 0;
   exit_check[2] = 0;
   game_state = SPLASH_SCREEN;
+
   main_menu_option = NEW_GAME;
 
 
@@ -245,6 +246,22 @@ void MyGame::setupGame()
     discovery.loadMem(io_buffer.as_unsigned_char(),
                          static_cast<unsigned int>(io_buffer.length), false, false);
   }
+
+  if (file.open("/data/background.wav"))
+  {
+    auto io_buffer = file.read();
+    background_music.loadMem(io_buffer.as_unsigned_char(),
+                      static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+
+  if (file.open("/data/background_2.wav"))
+  {
+    auto io_buffer = file.read();
+    background_music_1.loadMem(io_buffer.as_unsigned_char(),
+                             static_cast<unsigned int>(io_buffer.length), false, false);
+  }
+  background_music.setLooping(1);
+  background_music_1.setLooping(1);
 
 
 }
@@ -1052,6 +1069,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
   }
   else if(game_state == IN_GAME)
   {
+
     keyHandlerInGame(key);
   }
   else if (game_state == TEXT_DISPLAY)
@@ -1143,6 +1161,8 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
     {
       case NEW_GAME:
         game_state = TEXT_DISPLAY;
+        soloud.stopAll();
+        soloud.play(background_music, background_volume);
         break;
       case LOAD_GAME:
         loadGame();
@@ -1202,6 +1222,9 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
     soloud.play(menu_click);
     pause_menu_option = CONTINUE_GAME;
     game_state = PAUSE;
+    soloud.stopAll();
+    soloud.play(background_music_1, background_volume);
+
   }
   else if(key->key == ASGE::KEYS::KEY_I &&
           key->action == ASGE::KEYS::KEY_PRESSED)
@@ -1388,6 +1411,8 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
     {
       case CONTINUE_GAME:
         game_state = IN_GAME;
+        soloud.stopAll();
+        soloud.play(background_music, background_volume);
         break;
       case SAVE_GAME:
         saveGame();
@@ -1447,13 +1472,8 @@ void MyGame::updateSplash(double dt_sec)
 // Play the sound source (we could do this several times if we wanted)
     soloud.play(speech);
 
-    // Wait until sounds have finished
-    if (soloud.getActiveVoiceCount() > 0)
-    {
-      // Still going, sleep for a bit
-      SoLoud::Thread::sleep(100);
-    }
-
+    soloud.stopAll();
+    soloud.play(background_music_1, background_volume);
 
 
   }
@@ -1618,16 +1638,6 @@ void MyGame::renderSplash()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
   renderer->renderSprite(*splash_screen);
-  //ggsoloud.deinit();
-
-
-
-
-
-
-
-
-
 }
 
 /**
@@ -1667,6 +1677,7 @@ void MyGame::renderMainMenu()
 */
 void MyGame::renderInGame()
 {
+
   for (int i = 0; i < (current_room.getMyGridsizeX()*
                        current_room.getMyGridsizeY()); i++)
   {
