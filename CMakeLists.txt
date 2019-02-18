@@ -54,7 +54,8 @@ target_include_directories(
         ${PROJECT_NAME}
         SYSTEM
         PRIVATE
-        "${CMAKE_SOURCE_DIR}/Libs/ASGE/include")
+        "${CMAKE_SOURCE_DIR}/Libs/ASGE/include"
+        "${CMAKE_SOURCE_DIR}/Libs/soloud/include")
 
 ## compile language settings
 target_compile_features(
