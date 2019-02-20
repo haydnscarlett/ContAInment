@@ -48,10 +48,10 @@ bool Clue::addClueToPlayer(int* clues_found, int index)
   {
     if (clue_id == clues_found[i])
     {
-      return true;
+      return false;
     }
   }
-  return false;
+  return true;
 }
 
 /**
