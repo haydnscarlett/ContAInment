@@ -21,7 +21,6 @@ class Room
   GameObject* getMyForeground();
   void setMyForeground(GameObject* new_foreground);
   GameObject* getMyWalls();
-  void setMyWalls(GameObject* new_walls);
   Clue* getMyClues();
   void setMyClues(Clue* new_clues);
   Item* getMyItems();
@@ -57,19 +56,19 @@ class Room
   void setupWalls();
 
  private:
-  GameObject* my_background;
-  GameObject* my_foreground;
-  GameObject* my_walls;
-  Clue* my_clues;
-  int number_of_clues;
-  Item* my_items;
-  int number_of_items;
+  GameObject* my_background = nullptr;
+  GameObject* my_foreground= nullptr;
+  GameObject* my_walls= nullptr;
+  Clue* my_clues= nullptr;
+  int number_of_clues= 0;
+  Item* my_items= nullptr;
+  int number_of_items= 0;
   Puzzle my_puzzle;
-  int room_id;
-  Exit* my_exits;
-  int number_of_exits;
-  int my_gridsize_x;
-  int my_gridsize_y;
+  int room_id = 0;
+  Exit* my_exits= nullptr;
+  int number_of_exits= 0;
+  int my_gridsize_x= 0;
+  int my_gridsize_y= 0;
 };
 
 #endif // EXMACHINA_ROOM_H

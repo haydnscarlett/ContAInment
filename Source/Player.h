@@ -13,9 +13,6 @@ class Player
 {
  public:
   Player();
-  Player(GameObject new_player_gameobject, Item inventory[],
-         int* new_clues_found, int new_number_clues_found,
-         int new_direction, bool new_moving, int new_sprite_index);
   GameObject getPlayerGameobject() ;
   void setPlayerGameobject( GameObject player_gameobject);
   Item getInventory(int index) ;

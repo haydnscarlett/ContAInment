@@ -32,43 +32,6 @@ Player::Player()
 }
 
 /**
-*   @brief   Constructor Overload
-*   @details This function creates a player class with the input data
-*   @param   new_player_gameobject The player Gameobject
-*   @param   new_inventory[] The inventory array
-*   @param   new_clues_found The array of clues found ID'S
-*   @param   new_number_clues_found The number of clues found
-*   @param   new_puzzles_solved The array of puzzles solved ID'S
-*   @param   new_number_puzzles_solved The number of puzzles solved
-*   @param   new_direction Int represents direction player is facing
-*   @param   new_moving The moving bool
-*   @param   new_sprite_index The initial sprite index
-*   @return  Player
-*/
-Player::Player(GameObject new_player_gameobject, Item new_inventory[],
-int* new_clues_found, int new_number_clues_found,
-int new_direction, bool new_moving, int new_sprite_index)
-{
-  player_gameobject = new_player_gameobject;
-  for (int i =0; i < 15; i++)
-  {
-    inventory[i].setMyGameObject(new_inventory[i].getMyGameObject());
-    inventory[i].setItemID(new_inventory[i].getItemID());
-  }
-  number_clues_found = new_number_clues_found;
-  clues_found = new int[number_clues_found];
-
-  for (int i =0; i < number_clues_found; i++)
-  {
-    clues_found[i] = new_clues_found[i];
-  }
-  direction = new_direction;
-  moving = new_moving;
-  sprite_index = new_sprite_index;
-
-}
-
-/**
 *   @brief   Get Player Gameobject
 *   @details This function returns the player gameobject
 *   @return  GameObject

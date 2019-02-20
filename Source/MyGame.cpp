@@ -73,6 +73,7 @@ bool MyGame::init()
   inputs->use_threads = false;
   key_callback_id = inputs->addCallbackFnc(
       ASGE::E_KEY, &MyGame::keyHandler, this);
+  renderer->setWindowedMode(ASGE::Renderer::WindowMode::FULLSCREEN);
   return true;
 }
 
@@ -266,8 +267,8 @@ void MyGame::setupGame()
     background_music_1.loadMem(io_buffer.as_unsigned_char(),
                              static_cast<unsigned int>(io_buffer.length), false, false);
   }
-  background_music.setLooping(1);
-  background_music_1.setLooping(1);
+  background_music.setLooping(true);
+  background_music_1.setLooping(true);
 
   if (file.open("/data/intro.wav"))
   {
@@ -1077,8 +1078,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
       soloud.setVolume(handle_4, background_volume);
     }
   }
-
-  if (key->key == ASGE::KEYS::KEY_9 &&
+  else if (key->key == ASGE::KEYS::KEY_9 &&
       key->action == ASGE::KEYS::KEY_PRESSED)
   {
     if(background_volume>0.0f)
@@ -1090,8 +1090,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
       soloud.setVolume(handle_4, background_volume);
     }
   }
-
-    if (key->key == ASGE::KEYS::KEY_ENTER &&
+  else if (key->key == ASGE::KEYS::KEY_ENTER &&
       key->action == ASGE::KEYS::KEY_PRESSED &&
       key->mods == 0x0004)
   {
@@ -1159,16 +1158,16 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
       game_state = IN_GAME;
     }
   }
-    else if (game_state == CONTROLS)
+  else if (game_state == CONTROLS)
+  {
+    if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
+        || key->key == ASGE::KEYS::KEY_C) &&
+       key->action == ASGE::KEYS::KEY_PRESSED)
     {
-      if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
-          || key->key == ASGE::KEYS::KEY_C) &&
-         key->action == ASGE::KEYS::KEY_PRESSED)
-      {
-        soloud.play(page_close);
-        game_state = IN_GAME;
-      }
+      soloud.play(page_close);
+      game_state = IN_GAME;
     }
+  }
 }
 
 /**
@@ -2131,7 +2130,62 @@ void MyGame::renderClues()
   int display_height = 40;
   for(int i = 0; i < player_one.getNumberCluesFound(); i++)
   {
-    renderer->renderText(CLUES[player_one.getClueFound(i)],
+    switch(player_one.getClueFound(i))
+    {
+      case 0:
+        text_to_display = "There is no power.";
+        break;
+      case 1:
+        text_to_display = "There is a spare reactor fuse in the lab "
+                           "coat in the garden, did you leave "
+                           "it there \n"
+                           "on purpose?";
+        break;
+      case 2:
+        text_to_display = "8197";
+        break;
+      case 3:
+        text_to_display = "IMPORTANT: In case of an "
+                           "Emergency password is 'SANE'";
+        break;
+      case 4:
+        text_to_display = "Hey hun, waiting at the reception ;)";
+        break;
+      case 5:
+        text_to_display = "Reading list: Reprogrammimng the brain, "
+                           "Modern Neuroscience  \n"
+                           "Advanced AI, AI Pattern Recogniton, Printing"
+                           " Synthetic organs, The synthetic Human.";
+        break;
+      case 6:
+        text_to_display = "This has been used recently, "
+                           "could it be? FIBI?";
+        break;
+      case 7:
+        text_to_display = "What is this? We were using human "
+                           "brains, \nno no no, this can’t "
+                           "be happening!";
+        break;
+      case 8:
+        text_to_display = "Power continues to cut out, i'm "
+                           "starting to think it's not a "
+                           "coincidence, \n"
+                           "i'll keep the key to the reactor "
+                           "in my safe until the issue "
+                           "is resolved.";
+        break;
+      case 9:
+        text_to_display = "Keycards: Red = Emergency exit from Atrium,"
+                           " Green = Waste Disposal, \nYellow = Labs,"
+                           " Blue = Reception Exit";
+        break;
+      case 10:
+        text_to_display =  "10101 for power";
+        break;
+      default:
+        break;
+    }
+    renderer->renderText(text_to_display,
                          200, display_height, 0.75, ASGE::COLOURS::BLACK);
     display_height+= 60;
   }
@@ -2185,9 +2239,53 @@ void MyGame::renderInventory()
     {
       if(player_one.getInventory(i).getItemID() != -1)
       {
-        renderer->renderText("Drop the " +
-                             (ITEM_NAMES[player_one.getInventory(i).getItemID()] + "?"),
-                             260, 700, 1, ASGE::COLOURS::WHITESMOKE);
+        std::string item_name = "Drop the ";
+        switch(player_one.getInventory(i).getItemID())
+        {
+          case 0:
+            item_name.append("Screwdriver");
+            break;
+          case 1:
+            item_name.append("Fuse");
+            break;
+          case 2:
+            item_name.append("Yellow Keycard");
+            break;
+          case 3:
+            item_name.append("Blue Keycard");
+            break;
+          case 4:
+            item_name.append("Can");
+            break;
+          case 5:
+            item_name.append("Lunch box");
+            break;
+          case 6:
+            item_name.append("Can");
+            break;
+          case 7:
+            item_name.append("Key");
+            break;
+          case 8:
+            item_name.append("Hammer");
+            break;
+          case 9:
+            item_name.append("Pliers");
+            break;
+          case 10:
+            item_name.append("Red Keycard");
+            break;
+          case 11:
+            item_name.append("Green Keycard");
+            break;
+          case 12:
+            item_name.append("Magnifying Glass");
+            break;
+          default:
+            break;
+        }
+        item_name.append("?");
+        renderer->renderText(item_name, 260, 700, 1, ASGE::COLOURS::WHITESMOKE);
       }
       inventory_highlighter->xPos(new_x);
       inventory_highlighter->yPos(new_y);
