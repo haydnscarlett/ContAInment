@@ -1,7 +1,6 @@
 //
 // Created by haydn on 20/01/2019.
 //
-#include <string>
 
 #ifndef EXMACHINA_CONSTANTS_H
 #  define EXMACHINA_CONSTANTS_H
@@ -213,58 +212,3 @@ const float MOVABLE_DISTANCE_CHECK = 0.025f;
 // the distance to move the room in the update function whilst the player is
 // moving
 const float MOVEMENT_DISTANCE = 0.25f;
-
-const std::string ITEM_NAMES[13] = { "Screwdriver",
-                                     "Fuse",
-                                     "Yellow Keycard",
-                                     "Blue Keycard",
-                                     "Can",
-                                     "Lunch box",
-                                     "Can",
-                                     "Key",
-                                     "Hammer",
-                                     "Pliers",
-                                     "Red Keycard",
-                                     "Green Keycard",
-                                     "Magnifying glass." };
-const std::string ITEM_DESCRIPTIONS[13] = { "You found a screwdriver.",
-                                            "You found a fuse.",
-                                            "You found a yellow keycard.",
-                                            "You found a blue keycard.",
-                                            "You found a can.",
-                                            "You found a lunch box.",
-                                            "You found a can.",
-                                            "You found the key to the reactor room.",
-                                            "You found a hammer",
-                                            "You found a pair of pliers.",
-                                            "You found a red keycard.",
-                                            "You found a green keycard.",
-                                            "You found a Magnifying glass." };
-const std::string CLUES[NUM_CLUES] = { "There is no power.",
-                                       "There is a spare reactor fuse in the lab "
-                                       "coat in the garden, did you leave "
-                                       "it there \n"
-                                       "on purpose?",
-                                       "8197",
-                                       "IMPORTANT: In case of an "
-                                       "Emergency password is 'SANE'",
-                                       "Hey hun, waiting at the reception ;)",
-                                       "Reading list: Reprogrammimng the brain, "
-                                       "Modern Neuroscience  \n"
-                                       "Advanced AI, AI Pattern Recogniton, Printing"
-                                       " Synthetic organs, The synthetic Human.",
-                                       "This has been used recently, "
-                                       "could it be? FIBI?",
-                                       "What is this? We were using human "
-                                       "brains, \nno no no, this can’t "
-                                       "be happening!",
-                                       "Power continues to cut out, i'm "
-                                       "starting to think it's not a "
-                                       "coincidence, \n"
-                                       "i'll keep the key to the reactor "
-                                       "in my safe until the issue "
-                                       "is resolved.",
-                                       "Keycards: Red = Emergency exit from Atrium,"
-                                       " Green = Waste Disposal, \nYellow = Labs,"
-                                       " Blue = Reception Exit",
-                                       "10101 for power" };

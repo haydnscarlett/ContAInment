@@ -140,6 +140,8 @@ class MyGame : public ASGE::OGLGame
   SoLoud::Wav background_music_1;
   SoLoud::Wav intro_sfx;
 
+
+
   bool play_step;
 };
 

@@ -44,17 +44,12 @@ int Clue::getClueID()
 */
 bool Clue::addClueToPlayer(int* clues_found, int index)
 {
-  bool already_found = false;
   for (int i = 0; i < index; i ++)
   {
     if (clue_id == clues_found[i])
     {
-      already_found = true;
+      return true;
     }
-  }
-  if (!already_found)
-  {
-    return true;
   }
   return false;
 }

@@ -60,17 +60,6 @@ GameObject* Room::getMyWalls()
 }
 
 /**
-*   @brief   Set My Walls
-*   @details This function sets the Room's Walls array
-*   @param   new_walls The Walls array
-*   @return  void
-*/
-void Room::setMyWalls(GameObject* new_walls)
-{
-  my_walls = new_walls;
-}
-
-/**
 *   @brief   Get My Clues
 *   @details This function returns the Room's Clues array
 *   @return  Clue*
@@ -688,7 +677,61 @@ int Room::checkForInteractables(Player* player, std::string* text_to_display,
       {
         player->addToClues(my_clues[i].getClueID(), player->getNumberCluesFound());
       }
-      *text_to_display = CLUES[my_clues[i].getClueID()];
+      switch(my_clues[i].getClueID())
+      {
+        case 0:
+          *text_to_display = "There is no power.";
+          break;
+        case 1:
+          *text_to_display = "There is a spare reactor fuse in the lab "
+                             "coat in the garden, did you leave "
+                             "it there \n"
+                             "on purpose?";
+          break;
+        case 2:
+          *text_to_display = "8197";
+          break;
+        case 3:
+          *text_to_display = "IMPORTANT: In case of an "
+                             "Emergency password is 'SANE'";
+          break;
+        case 4:
+          *text_to_display = "Hey hun, waiting at the reception ;)";
+          break;
+        case 5:
+          *text_to_display = "Reading list: Reprogrammimng the brain, "
+                             "Modern Neuroscience  \n"
+                             "Advanced AI, AI Pattern Recogniton, Printing"
+                             " Synthetic organs, The synthetic Human.";
+          break;
+        case 6:
+          *text_to_display = "This has been used recently, "
+                             "could it be? FIBI?";
+          break;
+        case 7:
+          *text_to_display = "What is this? We were using human "
+                             "brains, \nno no no, this can’t "
+                             "be happening!";
+          break;
+        case 8:
+          *text_to_display = "Power continues to cut out, i'm "
+                             "starting to think it's not a "
+                             "coincidence, \n"
+                             "i'll keep the key to the reactor "
+                             "in my safe until the issue "
+                             "is resolved.";
+          break;
+        case 9:
+          *text_to_display = "Keycards: Red = Emergency exit from Atrium,"
+                             " Green = Waste Disposal, \nYellow = Labs,"
+                             " Blue = Reception Exit";
+          break;
+        case 10:
+          *text_to_display =  "10101 for power";
+          break;
+        default:
+          break;
+      }
       colliding = 1;
     }
   }
@@ -710,7 +753,50 @@ int Room::checkForInteractables(Player* player, std::string* text_to_display,
               if (player->getClueFound(k) == 2)
               {
                 Item new_item = my_items[i].addItemToInventory();
-                *text_to_display = ITEM_DESCRIPTIONS[my_items[i].getItemID()];
+                switch(my_items[i].getItemID())
+                {
+                  case 0:
+                    *text_to_display = "You found a screwdriver.";
+                    break;
+                  case 1:
+                    *text_to_display = "You found a fuse.";
+                    break;
+                  case 2:
+                    *text_to_display = "You found a yellow keycard.";
+                    break;
+                  case 3:
+                    *text_to_display = "You found a blue keycard.";
+                    break;
+                  case 4:
+                    *text_to_display = "You found a can.";
+                    break;
+                  case 5:
+                    *text_to_display = "You found a lunch box.";
+                    break;
+                  case 6:
+                    *text_to_display = "You found a can.";
+                    break;
+                  case 7:
+                    *text_to_display = "You found a key to the reactor room.";
+                    break;
+                  case 8:
+                    *text_to_display = "You found a hammer.";
+                    break;
+                  case 9:
+                    *text_to_display = "You found a pair of pliers.";
+                    break;
+                  case 10:
+                    *text_to_display = "You found a red keycard.";
+                    break;
+                  case 11:
+                    *text_to_display = "You found a green keycard.";
+                    break;
+                  case 12:
+                    *text_to_display = "You found a Magnifying Glass.";
+                    break;
+                  default:
+                    break;
+                }
                 player->addToInventory(new_item, j);
                 removeItem(my_items[i].getItemID());
                 j = 15;
@@ -729,7 +815,50 @@ int Room::checkForInteractables(Player* player, std::string* text_to_display,
           else
           {
             Item new_item = my_items[i].addItemToInventory();
-            *text_to_display = ITEM_DESCRIPTIONS[my_items[i].getItemID()];
+            switch(my_items[i].getItemID())
+            {
+              case 0:
+                *text_to_display = "You found a screwdriver.";
+                break;
+              case 1:
+                *text_to_display = "You found a fuse.";
+                break;
+              case 2:
+                *text_to_display = "You found a yellow keycard.";
+                break;
+              case 3:
+                *text_to_display = "You found a blue keycard.";
+                break;
+              case 4:
+                *text_to_display = "You found a can.";
+                break;
+              case 5:
+                *text_to_display = "You found a lunch box.";
+                break;
+              case 6:
+                *text_to_display = "You found a can.";
+                break;
+              case 7:
+                *text_to_display = "You found a key to the reactor room.";
+                break;
+              case 8:
+                *text_to_display = "You found a hammer.";
+                break;
+              case 9:
+                *text_to_display = "You found a pair of pliers.";
+                break;
+              case 10:
+                *text_to_display = "You found a red keycard.";
+                break;
+              case 11:
+                *text_to_display = "You found a green keycard.";
+                break;
+              case 12:
+                *text_to_display = "You found a Magnifying Glass.";
+                break;
+              default:
+                break;
+            }
             player->addToInventory(new_item, j);
             removeItem(my_items[i].getItemID());
             j = 15;
