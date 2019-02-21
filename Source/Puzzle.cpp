@@ -95,9 +95,9 @@ int Puzzle::getNumberLinkedExits() const
 *   @param   new_number_linked_exits The number of linked exits
 *   @return  void
 */
-void Puzzle::setNumberLinkedExits(int new_number_linked_exits)
+void Puzzle::setNumberLinkedExits(int new_num_lnkd_exts)
 {
-  number_linked_exits = new_number_linked_exits;
+  number_linked_exits = new_num_lnkd_exts;
 }
 
 /**
@@ -175,8 +175,8 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
   bool puzzle_completed = false;
   bool switches_completed = false;
   bool movables_completed = false;
-  bool required_item_completed = false;
-  bool required_clue_completed = false;
+  bool has_required_item = false;
+  bool has_required_clue = false;
 
   if (number_switches == 0)
   {
@@ -202,20 +202,22 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
     movables_completed = true;
     for (int i = 0; i < number_movables; i++)
     {
-      if(!(my_movables[i].getMyLocation().x > (target_movable_locations[i].x - MOVABLE_DISTANCE_CHECK)
-          && my_movables[i].getMyLocation().x < (target_movable_locations[i].x + MOVABLE_DISTANCE_CHECK)
-          && (my_movables[i].getMyLocation().y > (target_movable_locations[i].y - MOVABLE_DISTANCE_CHECK)
-          && my_movables[i].getMyLocation().y < (target_movable_locations[i].y + MOVABLE_DISTANCE_CHECK))))
+      if(!(my_movables[i].getMyLocation().x > (targ_movable_locs[i].x -
+      MOVABLE_DISTANCE_CHECK)
+          && my_movables[i].getMyLocation().x < (targ_movable_locs[i].x +
+          MOVABLE_DISTANCE_CHECK)
+          && (my_movables[i].getMyLocation().y > (targ_movable_locs[i].y -
+          MOVABLE_DISTANCE_CHECK)
+          && my_movables[i].getMyLocation().y < (targ_movable_locs[i].y +
+          MOVABLE_DISTANCE_CHECK))))
       {
         movables_completed = false;
       }
     }
   }
-
-
   if (required_item_id == -1)
   {
-    required_item_completed = true;
+    has_required_item = true;
   }
   else if (required_item_id > -1)
   {
@@ -223,13 +225,13 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
     {
       if(player->getInventory(i).getItemID() == required_item_id)
       {
-        required_item_completed = true;
+        has_required_item = true;
       }
     }
   }
   if (required_clue_id == -1)
   {
-    required_clue_completed = true;
+    has_required_clue = true;
   }
   else if (required_clue_id > -1)
   {
@@ -237,19 +239,14 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
     {
       if(player->getCluesFound()[i] == required_clue_id)
       {
-        required_clue_completed = true;
+        has_required_clue = true;
       }
     }
   }
-
-
-  if(switches_completed && movables_completed && required_item_completed &&
-      required_clue_completed)
+  if(switches_completed && movables_completed && has_required_item &&
+      has_required_clue &&((power_required && *power_on) || !power_required))
   {
-    if((power_required && *power_on) || !power_required)
-    {
-      puzzle_completed = true;
-    }
+    puzzle_completed = true;
   }
   return puzzle_completed;
 }
@@ -261,7 +258,7 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
 */
 Point2D* Puzzle::getTargetMovableLocations() const
 {
-  return target_movable_locations;
+  return targ_movable_locs;
 }
 
 /**
@@ -270,9 +267,9 @@ Point2D* Puzzle::getTargetMovableLocations() const
 *   @param   new_target_movable_locations The Target Movable Locations array
 *   @return  void
 */
-void Puzzle::setTargetMovableLocations(Point2D* new_target_movable_locations)
+void Puzzle::setTargetMovableLocations(Point2D* new_tar_mov_locs)
 {
-  target_movable_locations = new_target_movable_locations;
+  targ_movable_locs = new_tar_mov_locs;
 }
 
 /**
@@ -281,9 +278,9 @@ void Puzzle::setTargetMovableLocations(Point2D* new_target_movable_locations)
 *   @param   new_target_switch_states The Target Switch States array
 *   @return  void
 */
-void Puzzle::setTargetSwitchStates(bool* new_target_switch_states)
+void Puzzle::setTargetSwitchStates(bool* new_tar_sw_state)
 {
-  target_switch_states = new_target_switch_states;
+  target_switch_states = new_tar_sw_state;
 }
 
 /**
@@ -293,7 +290,7 @@ void Puzzle::setTargetSwitchStates(bool* new_target_switch_states)
 */
 std::string Puzzle::getPuzzleSolvedMessage()
 {
-  return puzzle_solved_message;
+  return solved_message;
 }
 
 /**
@@ -302,9 +299,9 @@ std::string Puzzle::getPuzzleSolvedMessage()
 *   @param   new_target_switch_states The Target Switch States array
 *   @return  void
 */
-void Puzzle::setPuzzleSolvedMessage(std::string new_puzzle_solved_message)
+void Puzzle::setPuzzleSolvedMessage(std::string new_solved_mssge)
 {
-  puzzle_solved_message.operator=(new_puzzle_solved_message) ;
+  solved_message.operator=(new_solved_mssge) ;
 }
 
 /**
@@ -324,13 +321,13 @@ Puzzle::Puzzle()
   number_linked_exits = 0;
   linked_exits = nullptr;
   number_movables = 0;
-  target_movable_locations = nullptr;
+  targ_movable_locs = nullptr;
   my_movables = nullptr;
   number_switches = 0;
   target_switch_states = nullptr;
   my_switches = nullptr;
   required_item_id = -1;
   required_clue_id = -1;
-  puzzle_solved_message = "";
+  solved_message = "";
   power_required = false;
 }

@@ -10,8 +10,8 @@ class Exit
 {
  public:
   Exit();
-  Exit(GameObject new_gameobject, int new_exit_id, int new_connected_room_id,
-       int new_connected_exit_id, bool new_locked);
+  Exit(GameObject new_gameobject, int new_exit_id, int new_cnnctd_room_id,
+       int new_cnnct_exit_id, bool new_locked);
   GameObject getMyExitGameobject();
   void setMyExitGameobject(GameObject new_exit_gameobject);
   int getExitID();

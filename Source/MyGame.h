@@ -25,7 +25,8 @@ class MyGame : public ASGE::OGLGame
   void render(const ASGE::GameTime& game_time) override;
 
  private:
-  void setupGame();
+  void setupGameSprites();
+  void setupGameSound();
   void setupRoomOne();
   void setupRoomTwo();
   void setupRoomThree();
@@ -53,7 +54,8 @@ class MyGame : public ASGE::OGLGame
   void setupRoomTwentyFive();
   void setupFloorSprites();
   void setupWallSprites();
-  void setupForegroundSprites();
+  void setupForegroundSpritesOne();
+  void setupForegroundSpritesTwo();
   void setupClueSprites();
   void setupSwitchSprites();
   void setupExitSprites();

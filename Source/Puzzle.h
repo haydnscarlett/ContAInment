@@ -19,7 +19,7 @@ class Puzzle
   Switch* getMySwitches() ;
   void setMySwitches(Switch* new_switches);
   int getNumberLinkedExits() const;
-  void setNumberLinkedExits(int new_number_linked_exits);
+  void setNumberLinkedExits(int new_num_lnkd_exts);
   void setRequiredItemID(int new_required_item_id);
   void setRequiredClueID(int new_required_clue_id);
   int getNumberMovables() const;
@@ -28,10 +28,10 @@ class Puzzle
   void setNumberSwitches(int new_number_switches);
   bool checkPuzzleCompleted(Player* player, bool* power_on);
   Point2D* getTargetMovableLocations() const;
-  void setTargetMovableLocations(Point2D* new_target_movable_locations);
-  void setTargetSwitchStates(bool* new_target_switch_states);
+  void setTargetMovableLocations(Point2D* new_tar_mov_locs);
+  void setTargetSwitchStates(bool* new_tar_sw_state);
   std::string getPuzzleSolvedMessage();
-  void setPuzzleSolvedMessage(std::string new_puzzle_solved_message);
+  void setPuzzleSolvedMessage(std::string new_solved_mssge);
   void setPowerRequired(bool power_required);
   Puzzle();
  private:
@@ -39,14 +39,14 @@ class Puzzle
   int number_linked_exits;
   int* linked_exits;
   int number_movables;
-  Point2D* target_movable_locations;
+  Point2D* targ_movable_locs;
   GameObject* my_movables;
   int number_switches;
   bool* target_switch_states;
   Switch* my_switches;
   int required_item_id;
   int required_clue_id;
-  std::string puzzle_solved_message;
+  std::string solved_message;
   bool power_required;
 };
 
