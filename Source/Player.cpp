@@ -3,6 +3,7 @@
 //
 
 #include <Engine/OGLGame.h>
+#include <cstring>
 #include "Player.h"
 #include "Constants.h"
 
