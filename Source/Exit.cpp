@@ -103,13 +103,13 @@ Exit::Exit()
 *   @param   new_locked The state of the exit true for locked false for unlocked
 *   @return  Exit
 */
-Exit::Exit(GameObject new_gameobject, int new_exit_id, int new_connected_room_id,
-int new_connected_exit_id, bool new_locked)
+Exit::Exit(GameObject new_gameobject, int new_exit_id, int new_cnnctd_room_id,
+int new_cnnct_exit_id, bool new_locked)
 {
 
   my_exit_gameobject = new_gameobject;
   exit_id = new_exit_id;
-  connected_room_id = new_connected_room_id;
-  connected_exit_id = new_connected_exit_id;
+  connected_room_id = new_cnnctd_room_id;
+  connected_exit_id = new_cnnct_exit_id;
   locked = new_locked;
 }

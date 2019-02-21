@@ -48,9 +48,9 @@ GameObject Player::getPlayerGameobject()
 *   @param   new_player_gameobject The player Gameobject
 *   @return  void
 */
-void Player::setPlayerGameobject(GameObject new_player_gameobject)
+void Player::setPlayerGameobject(GameObject new_player_object)
 {
-  player_gameobject = new_player_gameobject;
+  player_gameobject = new_player_object;
 }
 
 /**
@@ -83,15 +83,16 @@ void Player::addToInventory(Item new_item, int index)
 *   @param   index The index in the Clues found array to add the clue ID
 *   @return  void
 */
-void Player::addToClues(int new_clue, int index)
-{
-  int* tmp;
-  tmp  = new int[number_clues_found];
+void Player::addToClues(int new_clue, int index) {
+    int *tmp;
+    tmp = new int[number_clues_found];
     memcpy(tmp, clues_found, number_clues_found * sizeof(int));
-  number_clues_found++;
-  clues_found = new int[number_clues_found];
+    number_clues_found++;
+    clues_found = new int[number_clues_found];
     memcpy(clues_found, tmp, number_clues_found * sizeof(int));
-  clues_found[index] = new_clue;
+    clues_found[index] = new_clue;
+    tmp = nullptr;
+    delete tmp;
 }
 
 /**

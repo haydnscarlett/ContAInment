@@ -314,8 +314,7 @@ void Room::removeItem(int item_ID)
 */
 void Room::addItem(Item new_item)
 {
-  auto* tmp = new Item[number_of_items];
-  tmp = my_items;
+  auto* tmp = my_items;
   number_of_items++;
   my_items = new Item[number_of_items];
   for(int i = 0; i < number_of_items - 1; i++)
@@ -323,6 +322,8 @@ void Room::addItem(Item new_item)
     my_items[i] = tmp[i];
   }
   my_items[number_of_items - 1] = new_item;
+  tmp = nullptr;
+  delete tmp;
 }
 
 /**
@@ -335,23 +336,6 @@ void Room::moveRoom(Player* player)
 {
   if (player->isMoving())
   {
-    Switch* switches = nullptr;
-    GameObject* clue_gameobjects = nullptr;
-    GameObject* item_gameobjects = nullptr;
-    GameObject* switch_on_gameobjects = nullptr;
-    GameObject* switch_off_gameobjects = nullptr;
-    GameObject* movable_gameobjects = nullptr;
-    GameObject* exit_gameobjects = nullptr;
-
-    clue_gameobjects = new GameObject[number_of_clues];
-    item_gameobjects = new GameObject[number_of_items];
-    switches = my_puzzle.getMySwitches();
-    switch_on_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
-    switch_off_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
-    movable_gameobjects = my_puzzle.getMyMovables();
-    exit_gameobjects = new GameObject[number_of_exits];
-
-
     for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
     {
       Point2D new_location = my_background[i].getMyLocation();
@@ -397,7 +381,6 @@ void Room::moveRoom(Player* player)
       }
       my_walls[i].setMyLocation(new_location);
     }
-
     for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
     {
       if(my_foreground[i].getMySpriteId() != -1)
@@ -421,13 +404,11 @@ void Room::moveRoom(Player* player)
             break;
         }
         my_foreground[i].setMyLocation(new_location);
-
       }
     }
     for (int i = 0; i < number_of_clues; i++)
     {
-      clue_gameobjects[i] = my_clues[i].getMyGameObject();
-      Point2D new_location = clue_gameobjects[i].getMyLocation();
+      Point2D new_location = my_clues[i].getMyGameObject().getMyLocation();
       switch(player->getDirection())
       {
         case SOUTH :
@@ -445,13 +426,11 @@ void Room::moveRoom(Player* player)
         default :
           break;
       }
-      clue_gameobjects[i].setMyLocation(new_location);
-      my_clues[i].setMyGameObject(clue_gameobjects[i]);
+      my_clues[i].setMyGameObject(GameObject(my_clues[i].getMyGameObject().getMySpriteId(),new_location));
     }
     for (int i = 0; i < number_of_items; i++)
     {
-      item_gameobjects[i] = my_items[i].getMyGameObject();
-      Point2D new_location = item_gameobjects[i].getMyLocation();
+      Point2D new_location = my_items[i].getMyGameObject().getMyLocation();
       switch(player->getDirection())
       {
         case SOUTH :
@@ -469,14 +448,11 @@ void Room::moveRoom(Player* player)
         default :
           break;
       }
-      item_gameobjects[i].setMyLocation(new_location);
-      my_items[i].setMyGameObject(item_gameobjects[i]);
+        my_items[i].setMyGameObject(GameObject(my_items[i].getMyGameObject().getMySpriteId(),new_location));
     }
     for (int i = 0; i < my_puzzle.getNumberSwitches(); i++)
     {
-      switch_on_gameobjects[i] = switches[i].getMyOnGameobject();
-      switch_off_gameobjects[i] = switches[i].getMyOffGameobject();
-      Point2D new_location = switch_on_gameobjects[i].getMyLocation();
+      Point2D new_location = my_puzzle.getMySwitches()[i].getMyOnGameobject().getMyLocation();
       switch(player->getDirection())
       {
         case SOUTH :
@@ -494,20 +470,18 @@ void Room::moveRoom(Player* player)
         default :
           break;
       }
-      switch_on_gameobjects[i].setMyLocation(new_location);
-      switch_off_gameobjects[i].setMyLocation(new_location);
-      switches[i].setMyOnGameobject(switch_on_gameobjects[i]);
-      switches[i].setMyOffGameobject(switch_off_gameobjects[i]);
+        my_puzzle.getMySwitches()[i].setMyOffGameobject(GameObject(my_puzzle.getMySwitches()[i].getMyOffGameobject().
+        getMySpriteId(),new_location));
+        my_puzzle.getMySwitches()[i].setMyOnGameobject(GameObject(my_puzzle.getMySwitches()[i].getMyOnGameobject().
+                getMySpriteId(),new_location));
     }
-    my_puzzle.setMySwitches(switches);
     for (int i = 0; i < my_puzzle.getNumberMovables(); i++)
     {
-      movable_gameobjects[i] = my_puzzle.getMyMovables()[i];
-      if(!movable_gameobjects[i].collisionCheck(
+      if(!my_puzzle.getMyMovables()[i].collisionCheck(
           player->getPlayerGameobject().getMyLocation(),
           player->getDirection(), false))
       {
-        Point2D new_location = movable_gameobjects[i].getMyLocation();
+        Point2D new_location = my_puzzle.getMyMovables()[i].getMyLocation();
         Point2D* new_target_locations = my_puzzle.getTargetMovableLocations();
         Point2D new_target_location = new_target_locations[i];
         switch(player->getDirection())
@@ -531,10 +505,9 @@ void Room::moveRoom(Player* player)
           default :
             break;
         }
-        movable_gameobjects[i].setMyLocation(new_location);
+        my_puzzle.getMyMovables()[i].setMyLocation(new_location);
         new_target_locations[i] = new_target_location;
         my_puzzle.setTargetMovableLocations(new_target_locations);
-
       }
       else
       {
@@ -559,16 +532,11 @@ void Room::moveRoom(Player* player)
         }
         new_target_locations[i] = new_target_location;
         my_puzzle.setTargetMovableLocations(new_target_locations);
-
       }
-
     }
-    my_puzzle.setMyMovables(movable_gameobjects);
-
     for (int i = 0; i < number_of_exits; i++)
     {
-      exit_gameobjects[i] = my_exits[i].getMyExitGameobject();
-      Point2D new_location = exit_gameobjects[i].getMyLocation();
+      Point2D new_location = my_exits[i].getMyExitGameobject().getMyLocation();
       switch(player->getDirection())
       {
         case NORTH :
@@ -586,8 +554,7 @@ void Room::moveRoom(Player* player)
         default :
           break;
       }
-      exit_gameobjects[i].setMyLocation(new_location);
-      my_exits[i].setMyExitGameobject(exit_gameobjects[i]);
+        my_exits[i].setMyExitGameobject(GameObject(my_exits[i].getMyExitGameobject().getMySpriteId(),new_location));
     }
   }
 }
@@ -683,48 +650,35 @@ int Room::checkForInteractables(Player* player, std::string* text_to_display,
           *text_to_display = "There is no power.";
           break;
         case 1:
-          *text_to_display = "There is a spare reactor fuse in the lab "
-                             "coat in the garden, did you leave "
-                             "it there \n"
-                             "on purpose?";
+          *text_to_display = "There is a spare reactor fuse in the lab coat in the garden, did you leave \n"
+                             "it there on purpose?";
           break;
         case 2:
           *text_to_display = "8197";
           break;
         case 3:
-          *text_to_display = "IMPORTANT: In case of an "
-                             "Emergency password is 'SANE'";
+          *text_to_display = "IMPORTANT: In case of an Emergency password is 'SANE'";
           break;
         case 4:
           *text_to_display = "Hey hun, waiting at the reception ;)";
           break;
         case 5:
-          *text_to_display = "Reading list: Reprogrammimng the brain, "
-                             "Modern Neuroscience  \n"
-                             "Advanced AI, AI Pattern Recogniton, Printing"
-                             " Synthetic organs, The synthetic Human.";
+          *text_to_display = "Reading list: Reprogrammimng the brain, Modern Neuroscience  \n"
+                             "Advanced AI, AI Pattern Recogniton, Printing Synthetic organs, The synthetic Human.";
           break;
         case 6:
-          *text_to_display = "This has been used recently, "
-                             "could it be? FIBI?";
+          *text_to_display = "This has been used recently, could it be? FIBI?";
           break;
         case 7:
-          *text_to_display = "What is this? We were using human "
-                             "brains, \nno no no, this can’t "
-                             "be happening!";
+          *text_to_display = "What is this? We were using human brains, \nno no no, this cannot be happening!";
           break;
         case 8:
-          *text_to_display = "Power continues to cut out, i'm "
-                             "starting to think it's not a "
-                             "coincidence, \n"
-                             "i'll keep the key to the reactor "
-                             "in my safe until the issue "
-                             "is resolved.";
+          *text_to_display = "Power continues to cut out, i'm starting to think it's not a coincidence, \n"
+                             "i'll keep the key to the reactor in my safe until the issue is resolved.";
           break;
         case 9:
-          *text_to_display = "Keycards: Red = Emergency exit from Atrium,"
-                             " Green = Waste Disposal, \nYellow = Labs,"
-                             " Blue = Reception Exit";
+          *text_to_display = "Keycards: Red = Emergency exit from Atrium, Green = Waste Disposal, \n"
+                             "Yellow = Labs, Blue = Reception Exit";
           break;
         case 10:
           *text_to_display =  "10101 for power";
@@ -906,24 +860,6 @@ int Room::checkForInteractables(Player* player, std::string* text_to_display,
 */
 void Room::resetRoomPosition(Point2D distance)
 {
-
-  Switch* switches = nullptr;
-  GameObject* clue_gameobjects = nullptr;
-  GameObject* item_gameobjects = nullptr;
-  GameObject* switch_on_gameobjects = nullptr;
-  GameObject* switch_off_gameobjects = nullptr;
-  GameObject* movable_gameobjects = nullptr;
-  GameObject* exit_gameobjects = nullptr;
-
-  clue_gameobjects = new GameObject[number_of_clues];
-  item_gameobjects = new GameObject[number_of_items];
-  switches = my_puzzle.getMySwitches();
-  switch_on_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
-  switch_off_gameobjects = new GameObject[my_puzzle.getNumberSwitches()];
-  movable_gameobjects = my_puzzle.getMyMovables();
-  exit_gameobjects = new GameObject[number_of_exits];
-
-
   for (int i = 0; i < (my_gridsize_x * my_gridsize_y); i++)
   {
     Point2D new_location = my_background[i].getMyLocation();
@@ -953,57 +889,46 @@ void Room::resetRoomPosition(Point2D distance)
   }
   for (int i = 0; i < number_of_clues; i++)
   {
-    clue_gameobjects[i] = my_clues[i].getMyGameObject();
-    Point2D new_location = clue_gameobjects[i].getMyLocation();
+    Point2D new_location = my_clues[i].getMyGameObject().getMyLocation();
     new_location.x += distance.x;
     new_location.y += distance.y;
-    clue_gameobjects[i].setMyLocation(new_location);
-    my_clues[i].setMyGameObject(clue_gameobjects[i]);
+    my_clues[i].setMyGameObject(GameObject(my_clues[i].getMyGameObject().getMySpriteId(),new_location));
   }
   for (int i = 0; i < number_of_items; i++)
   {
-    item_gameobjects[i] = my_items[i].getMyGameObject();
-    Point2D new_location = item_gameobjects[i].getMyLocation();
-    new_location.x += distance.x;
-    new_location.y += distance.y;
-    item_gameobjects[i].setMyLocation(new_location);
-    my_items[i].setMyGameObject(item_gameobjects[i]);
+      Point2D new_location = my_items[i].getMyGameObject().getMyLocation();
+      new_location.x += distance.x;
+      new_location.y += distance.y;
+      my_items[i].setMyGameObject(GameObject(my_items[i].getMyGameObject().getMySpriteId(),new_location));
   }
   for (int i = 0; i < my_puzzle.getNumberSwitches(); i++)
   {
-    switch_on_gameobjects[i] = switches[i].getMyOnGameobject();
-    switch_off_gameobjects[i] = switches[i].getMyOffGameobject();
-    Point2D new_location = switch_on_gameobjects[i].getMyLocation();
+      Point2D new_location = my_puzzle.getMySwitches()[i].getMyOnGameobject().getMyLocation();
     new_location.x += distance.x;
     new_location.y += distance.y;
-    switch_on_gameobjects[i].setMyLocation(new_location);
-    switch_off_gameobjects[i].setMyLocation(new_location);
-    switches[i].setMyOnGameobject(switch_on_gameobjects[i]);
-    switches[i].setMyOffGameobject(switch_off_gameobjects[i]);
+      my_puzzle.getMySwitches()[i].setMyOffGameobject(GameObject(my_puzzle.getMySwitches()[i].getMyOffGameobject().
+              getMySpriteId(),new_location));
+      my_puzzle.getMySwitches()[i].setMyOnGameobject(GameObject(my_puzzle.getMySwitches()[i].getMyOnGameobject().
+              getMySpriteId(),new_location));
   }
-  my_puzzle.setMySwitches(switches);
   for (int i = 0; i < my_puzzle.getNumberMovables(); i++)
   {
-    movable_gameobjects[i] = my_puzzle.getMyMovables()[i];
-    Point2D new_location = movable_gameobjects[i].getMyLocation();
+    Point2D new_location = my_puzzle.getMyMovables()[i].getMyLocation();
     Point2D* new_target_locations = my_puzzle.getTargetMovableLocations();
     new_location.x += distance.x;
     new_location.y += distance.y;
     new_target_locations[i].x += distance.x;
     new_target_locations[i].y += distance.y;
-    movable_gameobjects[i].setMyLocation(new_location);
+      my_puzzle.getMyMovables()[i].setMyLocation(new_location);
     my_puzzle.setTargetMovableLocations(new_target_locations);
   }
-  my_puzzle.setMyMovables(movable_gameobjects);
 
   for (int i = 0; i < number_of_exits; i++)
   {
-    exit_gameobjects[i] = my_exits[i].getMyExitGameobject();
-    Point2D new_location = exit_gameobjects[i].getMyLocation();
+    Point2D new_location = my_exits[i].getMyExitGameobject().getMyLocation();
     new_location.x += distance.x;
     new_location.y += distance.y;
-    exit_gameobjects[i].setMyLocation(new_location);
-    my_exits[i].setMyExitGameobject(exit_gameobjects[i]);
+      my_exits[i].setMyExitGameobject(GameObject(my_exits[i].getMyExitGameobject().getMySpriteId(),new_location));
   }
 }
 
