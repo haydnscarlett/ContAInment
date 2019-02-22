@@ -8,7 +8,7 @@
 
 class Item
 {
-  public:
+ public:
   Item();
   Item(GameObject new_gameobject, int new_item_id);
   GameObject getMyGameObject();
@@ -17,7 +17,7 @@ class Item
   void setItemID(int new_item_id);
   Item addItemToInventory();
 
-  private:
+ private:
   GameObject my_gameobject;
   int item_id;
 };

@@ -12,20 +12,18 @@
 #include <Engine/Sprite.h>
 
 #include "soloud.h"
-#include "soloud_wav.h"
 #include "soloud_speech.h"
 #include "soloud_thread.h"
-
+#include "soloud_wav.h"
 
 #include "MyGame.h"
 
-
 /**
-*   @brief   Initialises the game
-*   @details This function is used to initialise the game.
-*   @param   none
-*   @return  bool
-*/
+ *   @brief   Initialises the game
+ *   @details This function is used to initialise the game.
+ *   @param   none
+ *   @return  bool
+ */
 bool MyGame::init()
 {
   game_name = "ContAInment";
@@ -64,216 +62,207 @@ bool MyGame::init()
   setupRoomTwentyFour();
   setupRoomTwentyFive();
 
+  change_room = false;
+  power_on = false;
+  exit_check[0] = 0;
+  exit_check[1] = 0;
+  exit_check[2] = 0;
+  game_state = SPLASH_SCREEN;
+  // renderer->setWindowedMode(ASGE::Renderer::WindowMode::FULLSCREEN);
 
-    change_room = false;
-    power_on = false;
-    exit_check[0] = 0;
-    exit_check[1] = 0;
-    exit_check[2] = 0;
-    game_state = SPLASH_SCREEN;
-    //renderer->setWindowedMode(ASGE::Renderer::WindowMode::FULLSCREEN);
-
-    main_menu_option = NEW_GAME;
+  main_menu_option = NEW_GAME;
   current_room = visited_rooms[OFFICE_ONE];
   inputs->use_threads = false;
-  key_callback_id = inputs->addCallbackFnc(
-      ASGE::E_KEY, &MyGame::keyHandler, this);
+  key_callback_id = inputs->addCallbackFnc(ASGE::E_KEY, &MyGame::keyHandler, this);
   return true;
 }
 
 /**
-*   @brief   Setup Game
-*   @details This function is used to setup the game.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Game
+ *   @details This function is used to setup the game.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupGameSprites()
 {
+  splash_screen = renderer->createRawSprite();
+  splash_screen->loadTexture("/data/Splash.png");
+  splash_screen->width((GAME_WIDTH * 0.5f));
+  splash_screen->height((GAME_HEIGHT * 0.5f));
+  splash_screen->xPos((GAME_WIDTH * 0.5f) - (splash_screen->width() * 0.5f));
+  splash_screen->yPos((GAME_HEIGHT * 0.5f) - (splash_screen->height() * 0.5f));
+  main_menu = renderer->createRawSprite();
+  main_menu->loadTexture("/data/MainMenu.png");
+  main_menu->width(GAME_WIDTH);
+  main_menu->height(GAME_HEIGHT);
+  main_menu->xPos(0.0f);
+  main_menu->yPos(0.0f);
 
-    splash_screen = renderer->createRawSprite();
-    splash_screen->loadTexture("/data/Splash.png");
-    splash_screen->width((GAME_WIDTH * 0.5f));
-    splash_screen->height((GAME_HEIGHT * 0.5f));
-    splash_screen->xPos((GAME_WIDTH * 0.5f) -
-                        (splash_screen->width() * 0.5f));
-    splash_screen->yPos((GAME_HEIGHT * 0.5f) -
-                        (splash_screen->height() * 0.5f));
-    main_menu = renderer->createRawSprite();
-    main_menu->loadTexture("/data/MainMenu.png");
-    main_menu->width(GAME_WIDTH);
-    main_menu->height(GAME_HEIGHT);
-    main_menu->xPos(0.0f);
-    main_menu->yPos(0.0f);
+  main_menu_icon = renderer->createRawSprite();
+  main_menu_icon->loadTexture("/data/arrow.png");
+  main_menu_icon->width(50);
+  main_menu_icon->height(50);
 
-    main_menu_icon = renderer->createRawSprite();
-    main_menu_icon->loadTexture("/data/arrow.png");
-    main_menu_icon->width(50);
-    main_menu_icon->height(50);
+  pause_menu = renderer->createRawSprite();
+  pause_menu->loadTexture("/data/PauseMenu.png");
+  pause_menu->width(GAME_WIDTH);
+  pause_menu->height(GAME_HEIGHT);
+  pause_menu->xPos(0.0f);
+  pause_menu->yPos(0.0f);
 
-    pause_menu = renderer->createRawSprite();
-    pause_menu->loadTexture("/data/PauseMenu.png");
-    pause_menu->width(GAME_WIDTH);
-    pause_menu->height(GAME_HEIGHT);
-    pause_menu->xPos(0.0f);
-    pause_menu->yPos(0.0f);
+  game_screen = renderer->createRawSprite();
+  game_screen->loadTexture("/data/GameScreen.png");
+  game_screen->width(GAME_WIDTH);
+  game_screen->height(GAME_HEIGHT);
+  game_screen->xPos(0.0f);
+  game_screen->yPos(0.0f);
 
-    game_screen = renderer->createRawSprite();
-    game_screen->loadTexture("/data/GameScreen.png");
-    game_screen->width(GAME_WIDTH);
-    game_screen->height(GAME_HEIGHT);
-    game_screen->xPos(0.0f);
-    game_screen->yPos(0.0f);
+  text_box = renderer->createRawSprite();
+  text_box->loadTexture("/data/TextBox.png");
+  text_box->width(GAME_WIDTH);
+  text_box->height(GAME_HEIGHT);
+  text_box->xPos(0.0f);
+  text_box->yPos(0.0f);
 
-    text_box = renderer->createRawSprite();
-    text_box->loadTexture("/data/TextBox.png");
-    text_box->width(GAME_WIDTH);
-    text_box->height(GAME_HEIGHT);
-    text_box->xPos(0.0f);
-    text_box->yPos(0.0f);
+  text_to_display = "You awake to discover you are locked in and "
+                    "the AI you were testing is missing.\nThe power is down!"
+                    " You must find a way to escape!";
 
-    text_to_display = "You awake to discover you are locked in and "
-                      "the AI you were testing is missing.\nThe power is down!"
-                      " You must find a way to escape!";
+  inventory_screen = renderer->createRawSprite();
+  inventory_screen->loadTexture("/data/Inventory.png");
+  inventory_screen->width(GAME_WIDTH);
+  inventory_screen->height(GAME_HEIGHT);
+  inventory_screen->xPos(0.0f);
+  inventory_screen->yPos(0.0f);
 
-    inventory_screen = renderer->createRawSprite();
-    inventory_screen->loadTexture("/data/Inventory.png");
-    inventory_screen->width(GAME_WIDTH);
-    inventory_screen->height(GAME_HEIGHT);
-    inventory_screen->xPos(0.0f);
-    inventory_screen->yPos(0.0f);
+  inventory_highlighter = renderer->createRawSprite();
+  inventory_highlighter->loadTexture("/data/InventoryHighlight.png");
+  inventory_highlighter->width((GRID_SIZE * 2) + 10.0f);
+  inventory_highlighter->height((GRID_SIZE * 2) + 10.0f);
+  inventory_highlighter->xPos(0.0f);
+  inventory_highlighter->yPos(0.0f);
 
-    inventory_highlighter = renderer->createRawSprite();
-    inventory_highlighter->loadTexture("/data/InventoryHighlight.png");
-    inventory_highlighter->width((GRID_SIZE * 2) + 10.0f);
-    inventory_highlighter->height((GRID_SIZE * 2) + 10.0f);
-    inventory_highlighter->xPos(0.0f);
-    inventory_highlighter->yPos(0.0f);
+  map = renderer->createRawSprite();
+  map->loadTexture("/data/map.png");
+  map->width(GAME_WIDTH);
+  map->height(GAME_HEIGHT);
+  map->xPos(0.0f);
+  map->yPos(0.0f);
 
-    map = renderer->createRawSprite();
-    map->loadTexture("/data/map.png");
-    map->width(GAME_WIDTH);
-    map->height(GAME_HEIGHT);
-    map->xPos(0.0f);
-    map->yPos(0.0f);
+  journal = renderer->createRawSprite();
+  journal->loadTexture("/data/Journal.png");
+  journal->width(GAME_WIDTH);
+  journal->height(GAME_HEIGHT);
+  journal->xPos(0.0f);
+  journal->yPos(0.0f);
 
-    journal = renderer->createRawSprite();
-    journal->loadTexture("/data/Journal.png");
-    journal->width(GAME_WIDTH);
-    journal->height(GAME_HEIGHT);
-    journal->xPos(0.0f);
-    journal->yPos(0.0f);
-
-    setupFloorSprites();
-    setupWallSprites();
-    setupForegroundSpritesOne();
-    setupForegroundSpritesTwo();
-    setupClueSprites();
-    setupSwitchSprites();
-    setupExitSprites();
-    setupItemSprites();
-    setupMovableSprites();
-    setupPlayerSprites();
-
+  setupFloorSprites();
+  setupWallSprites();
+  setupForegroundSpritesOne();
+  setupForegroundSpritesTwo();
+  setupClueSprites();
+  setupSwitchSprites();
+  setupExitSprites();
+  setupItemSprites();
+  setupMovableSprites();
+  setupPlayerSprites();
 }
 
 /**
-*   @brief   Setup Game
-*   @details This function is used to setup the game.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Game
+ *   @details This function is used to setup the game.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupGameSound()
 {
-    // Configure sound source
-    speech.setText("Welcome to containment");
-    // initialize SoLoud.
-    soloud.init();
+  // Configure sound source
+  speech.setText("Welcome to containment");
+  // initialize SoLoud.
+  soloud.init();
   ASGE::FILEIO::File file;
   if (file.open("/data/menu.wav"))
   {
     auto io_buffer = file.read();
-    menu_click.loadMem(io_buffer.as_unsigned_char(),
-                  static_cast<unsigned int>(io_buffer.length), false, false);
+    menu_click.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
-
 
   if (file.open("/data/openpage.wav"))
   {
     auto io_buffer = file.read();
-    page_open.loadMem(io_buffer.as_unsigned_char(),
-                  static_cast<unsigned int>(io_buffer.length), false, false);
+    page_open.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
-
 
   if (file.open("/data/closepage.wav"))
   {
     auto io_buffer = file.read();
-    page_close.loadMem(io_buffer.as_unsigned_char(),
-                      static_cast<unsigned int>(io_buffer.length), false, false);
+    page_close.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/lever.wav"))
   {
     auto io_buffer = file.read();
-    lever.loadMem(io_buffer.as_unsigned_char(),
-                      static_cast<unsigned int>(io_buffer.length), false, false);
+    lever.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/sfx_hard_surface_walk_2.wav"))
   {
     auto io_buffer = file.read();
-    footsteps[0].loadMem(io_buffer.as_unsigned_char(),
-                  static_cast<unsigned int>(io_buffer.length), false, false);
+    footsteps[0].loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
-
 
   if (file.open("/data/sfx_hard_surface_walk_4.wav"))
   {
     auto io_buffer = file.read();
-    footsteps[1].loadMem(io_buffer.as_unsigned_char(),
-                         static_cast<unsigned int>(io_buffer.length), false, false);
+    footsteps[1].loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/sfx_wood_walk_3.wav"))
   {
     auto io_buffer = file.read();
-    footsteps[2].loadMem(io_buffer.as_unsigned_char(),
-                         static_cast<unsigned int>(io_buffer.length), false, false);
+    footsteps[2].loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/sfx_wood_walk_4.wav"))
   {
     auto io_buffer = file.read();
-    footsteps[3].loadMem(io_buffer.as_unsigned_char(),
-                         static_cast<unsigned int>(io_buffer.length), false, false);
+    footsteps[3].loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/sfx_wood_walk_5.wav"))
   {
     auto io_buffer = file.read();
-    footsteps[4].loadMem(io_buffer.as_unsigned_char(),
-                         static_cast<unsigned int>(io_buffer.length), false, false);
+    footsteps[4].loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/discovery.wav"))
   {
     auto io_buffer = file.read();
-    discovery.loadMem(io_buffer.as_unsigned_char(),
-                         static_cast<unsigned int>(io_buffer.length), false, false);
+    discovery.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/background.wav"))
   {
     auto io_buffer = file.read();
-    background_music.loadMem(io_buffer.as_unsigned_char(),
-                      static_cast<unsigned int>(io_buffer.length), false, false);
+    background_music.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
 
   if (file.open("/data/background_2.wav"))
   {
     auto io_buffer = file.read();
-    background_music_1.loadMem(io_buffer.as_unsigned_char(),
-                             static_cast<unsigned int>(io_buffer.length), false, false);
+    background_music_1.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
   background_music.setLooping(true);
   background_music_1.setLooping(true);
@@ -281,409 +270,370 @@ void MyGame::setupGameSound()
   if (file.open("/data/intro.wav"))
   {
     auto io_buffer = file.read();
-    intro_sfx.loadMem(io_buffer.as_unsigned_char(),
-                               static_cast<unsigned int>(io_buffer.length), false, false);
+    intro_sfx.loadMem(
+      io_buffer.as_unsigned_char(), static_cast<unsigned int>(io_buffer.length), false, false);
   }
   soloud.play(intro_sfx);
 }
 
 /**
-*   @brief   Setup Floor Sprites
-*   @details This function is used to setup the floor sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Floor Sprites
+ *   @details This function is used to setup the floor sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupFloorSprites()
 {
-    floor_sprites[0] = renderer->createRawSprite();
-    floor_sprites[0]->loadTexture("/data/Room_Sprites/Floor/floor_1.png");
-    floor_sprites[1] = renderer->createRawSprite();
-    floor_sprites[1]->loadTexture("/data/Room_Sprites/Floor/floor_2.png");
-    floor_sprites[2] = renderer->createRawSprite();
-    floor_sprites[2]->loadTexture("/data/Room_Sprites/Floor/floor_3.png");
+  floor_sprites[0] = renderer->createRawSprite();
+  floor_sprites[0]->loadTexture("/data/Room_Sprites/Floor/floor_1.png");
+  floor_sprites[1] = renderer->createRawSprite();
+  floor_sprites[1]->loadTexture("/data/Room_Sprites/Floor/floor_2.png");
+  floor_sprites[2] = renderer->createRawSprite();
+  floor_sprites[2]->loadTexture("/data/Room_Sprites/Floor/floor_3.png");
 }
 
 /**
-*   @brief   Setup Wall Sprites
-*   @details This function is used to setup the wall sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Wall Sprites
+ *   @details This function is used to setup the wall sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupWallSprites()
 {
-    wall_sprites[TOP_LEFT] = renderer->createRawSprite();
-    wall_sprites[TOP_LEFT]->loadTexture("/data/Room_Sprites/Walls/top_left_wall.png");
-    wall_sprites[TOP] = renderer->createRawSprite();
-    wall_sprites[TOP]->loadTexture("/data/Room_Sprites/Walls/top_wall.png");
-    wall_sprites[TOP_RIGHT] = renderer->createRawSprite();
-    wall_sprites[TOP_RIGHT]->loadTexture("/data/Room_Sprites/Walls/top_right_wall.png");
-    wall_sprites[LEFT] = renderer->createRawSprite();
-    wall_sprites[LEFT]->loadTexture("/data/Room_Sprites/Walls/left_wall.png");
-    wall_sprites[RIGHT] = renderer->createRawSprite();
-    wall_sprites[RIGHT]->loadTexture("/data/Room_Sprites/Walls/right_wall.png");
-    wall_sprites[BOTTOM_LEFT] = renderer->createRawSprite();
-    wall_sprites[BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Walls/bottom_left_wall.png");
-    wall_sprites[BOTTOM] = renderer->createRawSprite();
-    wall_sprites[BOTTOM]->loadTexture("/data/Room_Sprites/Walls/bottom_wall.png");
-    wall_sprites[BOTTOM_RIGHT] = renderer->createRawSprite();
-    wall_sprites[BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Walls/bottom_right_wall.png");
+  wall_sprites[TOP_LEFT] = renderer->createRawSprite();
+  wall_sprites[TOP_LEFT]->loadTexture("/data/Room_Sprites/Walls/top_left_wall.png");
+  wall_sprites[TOP] = renderer->createRawSprite();
+  wall_sprites[TOP]->loadTexture("/data/Room_Sprites/Walls/top_wall.png");
+  wall_sprites[TOP_RIGHT] = renderer->createRawSprite();
+  wall_sprites[TOP_RIGHT]->loadTexture("/data/Room_Sprites/Walls/top_right_wall.png");
+  wall_sprites[LEFT] = renderer->createRawSprite();
+  wall_sprites[LEFT]->loadTexture("/data/Room_Sprites/Walls/left_wall.png");
+  wall_sprites[RIGHT] = renderer->createRawSprite();
+  wall_sprites[RIGHT]->loadTexture("/data/Room_Sprites/Walls/right_wall.png");
+  wall_sprites[BOTTOM_LEFT] = renderer->createRawSprite();
+  wall_sprites[BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Walls/bottom_left_wall.png");
+  wall_sprites[BOTTOM] = renderer->createRawSprite();
+  wall_sprites[BOTTOM]->loadTexture("/data/Room_Sprites/Walls/bottom_wall.png");
+  wall_sprites[BOTTOM_RIGHT] = renderer->createRawSprite();
+  wall_sprites[BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Walls/bottom_right_wall.png");
 }
 
 /**
-*   @brief   Setup Foreground Sprites
-*   @details This function is used to setup the foreground sprite array.
-*   @param   none
-*   @return  void
-*/
-void MyGame::setupForegroundSpritesOne() {
-    foreground_sprites[COUNTER_LEFT] = renderer->createRawSprite();
-    foreground_sprites[COUNTER_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/kitchen_counter_left.png");
-    foreground_sprites[COUNTER_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[COUNTER_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/kitchen_counter_right.png");
-    foreground_sprites[TABLE_TOP] = renderer->createRawSprite();
-    foreground_sprites[TABLE_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/table_top.png");
-    foreground_sprites[TABLE_MIDDLE] = renderer->createRawSprite();
-    foreground_sprites[TABLE_MIDDLE]->loadTexture
-            ("/data/Room_Sprites/Objects/table_middle.png");
-    foreground_sprites[TABLE_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[TABLE_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/table_bottom.png");
-    foreground_sprites[FRIDGE_TOP] = renderer->createRawSprite();
-    foreground_sprites[FRIDGE_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/fridge_top.png");
-    foreground_sprites[SINK_TOP] = renderer->createRawSprite();
-    foreground_sprites[SINK_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/kitchen_sink_top.png");
-    foreground_sprites[TABLE_LEFT] = renderer->createRawSprite();
-    foreground_sprites[TABLE_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/table_left.png");
-    foreground_sprites[TABLE_CENTRE] = renderer->createRawSprite();
-    foreground_sprites[TABLE_CENTRE]->loadTexture
-            ("/data/Room_Sprites/Objects/table_centre.png");
-    foreground_sprites[TABLE_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[TABLE_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/table_right.png");
-    foreground_sprites[CHAIR_TOP] = renderer->createRawSprite();
-    foreground_sprites[CHAIR_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/chair_top.png");
-    foreground_sprites[CHAIR_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[CHAIR_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/chair_bottom.png");
-    foreground_sprites[COOKER_TOP] = renderer->createRawSprite();
-    foreground_sprites[COOKER_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/cooker_top.png");
-    foreground_sprites[CAFE_TABLE_LEFT] = renderer->createRawSprite();
-    foreground_sprites[CAFE_TABLE_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/cafeteria_table_left.png");
-    foreground_sprites[CAFE_TABLE_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[CAFE_TABLE_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/cafeteria_table_right.png");
-    foreground_sprites[SOFA_TOP_LEFT] = renderer->createRawSprite();
-    foreground_sprites[SOFA_TOP_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_top_left.png");
-    foreground_sprites[SOFA_TOP_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[SOFA_TOP_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_top_right.png");
-    foreground_sprites[SOFA_LEFT_TOP] = renderer->createRawSprite();
-    foreground_sprites[SOFA_LEFT_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_left_top.png");
-    foreground_sprites[SOFA_LEFT_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[SOFA_LEFT_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_left_bottom.png");
-    foreground_sprites[SOFA_RIGHT_TOP] = renderer->createRawSprite();
-    foreground_sprites[SOFA_RIGHT_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_right_top.png");
-    foreground_sprites[SOFA_RIGHT_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[SOFA_RIGHT_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_right_bottom.png");
-    foreground_sprites[SOFA_BOTTOM_LEFT] = renderer->createRawSprite();
-    foreground_sprites[SOFA_BOTTOM_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_bottom_left.png");
-    foreground_sprites[SOFA_BOTTOM_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[SOFA_BOTTOM_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/sofa_bottom_right.png");
-    foreground_sprites[BED_LEFT] = renderer->createRawSprite();
-    foreground_sprites[BED_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/bed_left.png");
-    foreground_sprites[BED_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[BED_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/bed_right.png");
-    foreground_sprites[BED_TOP] = renderer->createRawSprite();
-    foreground_sprites[BED_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/bed_top.png");
-    foreground_sprites[BED_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[BED_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/bed_bottom.png");
-    foreground_sprites[FLOWER_TOP] = renderer->createRawSprite();
-    foreground_sprites[FLOWER_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/flower_top.png");
-    foreground_sprites[FLOWER_MID_ONE] = renderer->createRawSprite();
-    foreground_sprites[FLOWER_MID_ONE]->loadTexture
-            ("/data/Room_Sprites/Objects/flower_mid.png");
-    foreground_sprites[FLOWER_MID_TWO] = renderer->createRawSprite();
-    foreground_sprites[FLOWER_MID_TWO]->loadTexture
-            ("/data/Room_Sprites/Objects/flower_mid2.png");
-    foreground_sprites[FLOWER_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[FLOWER_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/flower_bottom.png");
-    foreground_sprites[LAB_COAT] = renderer->createRawSprite();
-    foreground_sprites[LAB_COAT]->loadTexture
-            ("/data/Room_Sprites/Objects/lab_coat.png");
-    foreground_sprites[VENDING_MACHINE] = renderer->createRawSprite();
-    foreground_sprites[VENDING_MACHINE]->loadTexture
-            ("/data/Room_Sprites/Objects/vending_machine.png");
-    foreground_sprites[WEIGHTBENCH_TOP] = renderer->createRawSprite();
-    foreground_sprites[WEIGHTBENCH_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/weight_bench_top.png");
-    foreground_sprites[WEIGHTBENCH_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[WEIGHTBENCH_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/weight_bench_bottom.png");
-    foreground_sprites[TREADMILL_TOP] = renderer->createRawSprite();
-    foreground_sprites[TREADMILL_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/treadmill_top.png");
-    foreground_sprites[TREADMILL_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[TREADMILL_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/treadmill_bottom.png");
-    foreground_sprites[LOCKER_TOP] = renderer->createRawSprite();
-    foreground_sprites[LOCKER_TOP]->loadTexture
-            ("/data/Room_Sprites/Objects/locker_top.png");
-    foreground_sprites[LOCKER_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[LOCKER_BOTTOM]->loadTexture
-            ("/data/Room_Sprites/Objects/locker_bottom.png");
-    foreground_sprites[SHOWER] = renderer->createRawSprite();
-    foreground_sprites[SHOWER]->loadTexture
-            ("/data/Room_Sprites/Objects/shower.png");
-    foreground_sprites[TOILET_LEFT] = renderer->createRawSprite();
-    foreground_sprites[TOILET_LEFT]->loadTexture
-            ("/data/Room_Sprites/Objects/toilet_left.png");
-    foreground_sprites[BATHROOM_SINK_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[BATHROOM_SINK_RIGHT]->loadTexture
-            ("/data/Room_Sprites/Objects/sink_right.png");
-    foreground_sprites[WASTE_BARREL] = renderer->createRawSprite();
-    foreground_sprites[WASTE_BARREL]->loadTexture
-            ("/data/Room_Sprites/Objects/waste_barrel.png");
-
+ *   @brief   Setup Foreground Sprites
+ *   @details This function is used to setup the foreground sprite array.
+ *   @param   none
+ *   @return  void
+ */
+void MyGame::setupForegroundSpritesOne()
+{
+  foreground_sprites[COUNTER_LEFT] = renderer->createRawSprite();
+  foreground_sprites[COUNTER_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                "kitchen_counter_left.png");
+  foreground_sprites[COUNTER_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[COUNTER_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                 "kitchen_counter_right.png");
+  foreground_sprites[TABLE_TOP] = renderer->createRawSprite();
+  foreground_sprites[TABLE_TOP]->loadTexture("/data/Room_Sprites/Objects/table_top.png");
+  foreground_sprites[TABLE_MIDDLE] = renderer->createRawSprite();
+  foreground_sprites[TABLE_MIDDLE]->loadTexture("/data/Room_Sprites/Objects/table_middle.png");
+  foreground_sprites[TABLE_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[TABLE_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/table_bottom.png");
+  foreground_sprites[FRIDGE_TOP] = renderer->createRawSprite();
+  foreground_sprites[FRIDGE_TOP]->loadTexture("/data/Room_Sprites/Objects/fridge_top.png");
+  foreground_sprites[SINK_TOP] = renderer->createRawSprite();
+  foreground_sprites[SINK_TOP]->loadTexture("/data/Room_Sprites/Objects/kitchen_sink_top.png");
+  foreground_sprites[TABLE_LEFT] = renderer->createRawSprite();
+  foreground_sprites[TABLE_LEFT]->loadTexture("/data/Room_Sprites/Objects/table_left.png");
+  foreground_sprites[TABLE_CENTRE] = renderer->createRawSprite();
+  foreground_sprites[TABLE_CENTRE]->loadTexture("/data/Room_Sprites/Objects/table_centre.png");
+  foreground_sprites[TABLE_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[TABLE_RIGHT]->loadTexture("/data/Room_Sprites/Objects/table_right.png");
+  foreground_sprites[CHAIR_TOP] = renderer->createRawSprite();
+  foreground_sprites[CHAIR_TOP]->loadTexture("/data/Room_Sprites/Objects/chair_top.png");
+  foreground_sprites[CHAIR_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[CHAIR_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/chair_bottom.png");
+  foreground_sprites[COOKER_TOP] = renderer->createRawSprite();
+  foreground_sprites[COOKER_TOP]->loadTexture("/data/Room_Sprites/Objects/cooker_top.png");
+  foreground_sprites[CAFE_TABLE_LEFT] = renderer->createRawSprite();
+  foreground_sprites[CAFE_TABLE_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                   "cafeteria_table_left.png");
+  foreground_sprites[CAFE_TABLE_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[CAFE_TABLE_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "cafeteria_table_right.png");
+  foreground_sprites[SOFA_TOP_LEFT] = renderer->createRawSprite();
+  foreground_sprites[SOFA_TOP_LEFT]->loadTexture("/data/Room_Sprites/Objects/sofa_top_left.png");
+  foreground_sprites[SOFA_TOP_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[SOFA_TOP_RIGHT]->loadTexture("/data/Room_Sprites/Objects/sofa_top_right.png");
+  foreground_sprites[SOFA_LEFT_TOP] = renderer->createRawSprite();
+  foreground_sprites[SOFA_LEFT_TOP]->loadTexture("/data/Room_Sprites/Objects/sofa_left_top.png");
+  foreground_sprites[SOFA_LEFT_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[SOFA_LEFT_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "sofa_left_bottom.png");
+  foreground_sprites[SOFA_RIGHT_TOP] = renderer->createRawSprite();
+  foreground_sprites[SOFA_RIGHT_TOP]->loadTexture("/data/Room_Sprites/Objects/sofa_right_top.png");
+  foreground_sprites[SOFA_RIGHT_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[SOFA_RIGHT_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "sofa_right_bottom.png");
+  foreground_sprites[SOFA_BOTTOM_LEFT] = renderer->createRawSprite();
+  foreground_sprites[SOFA_BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "sofa_bottom_left.png");
+  foreground_sprites[SOFA_BOTTOM_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[SOFA_BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "sofa_bottom_right.png");
+  foreground_sprites[BED_LEFT] = renderer->createRawSprite();
+  foreground_sprites[BED_LEFT]->loadTexture("/data/Room_Sprites/Objects/bed_left.png");
+  foreground_sprites[BED_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[BED_RIGHT]->loadTexture("/data/Room_Sprites/Objects/bed_right.png");
+  foreground_sprites[BED_TOP] = renderer->createRawSprite();
+  foreground_sprites[BED_TOP]->loadTexture("/data/Room_Sprites/Objects/bed_top.png");
+  foreground_sprites[BED_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[BED_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/bed_bottom.png");
+  foreground_sprites[FLOWER_TOP] = renderer->createRawSprite();
+  foreground_sprites[FLOWER_TOP]->loadTexture("/data/Room_Sprites/Objects/flower_top.png");
+  foreground_sprites[FLOWER_MID_ONE] = renderer->createRawSprite();
+  foreground_sprites[FLOWER_MID_ONE]->loadTexture("/data/Room_Sprites/Objects/flower_mid.png");
+  foreground_sprites[FLOWER_MID_TWO] = renderer->createRawSprite();
+  foreground_sprites[FLOWER_MID_TWO]->loadTexture("/data/Room_Sprites/Objects/flower_mid2.png");
+  foreground_sprites[FLOWER_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[FLOWER_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/flower_bottom.png");
+  foreground_sprites[LAB_COAT] = renderer->createRawSprite();
+  foreground_sprites[LAB_COAT]->loadTexture("/data/Room_Sprites/Objects/lab_coat.png");
+  foreground_sprites[VENDING_MACHINE] = renderer->createRawSprite();
+  foreground_sprites[VENDING_MACHINE]->loadTexture("/data/Room_Sprites/Objects/"
+                                                   "vending_machine.png");
+  foreground_sprites[WEIGHTBENCH_TOP] = renderer->createRawSprite();
+  foreground_sprites[WEIGHTBENCH_TOP]->loadTexture("/data/Room_Sprites/Objects/"
+                                                   "weight_bench_top.png");
+  foreground_sprites[WEIGHTBENCH_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[WEIGHTBENCH_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                      "weight_bench_bottom.png");
+  foreground_sprites[TREADMILL_TOP] = renderer->createRawSprite();
+  foreground_sprites[TREADMILL_TOP]->loadTexture("/data/Room_Sprites/Objects/treadmill_top.png");
+  foreground_sprites[TREADMILL_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[TREADMILL_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "treadmill_bottom.png");
+  foreground_sprites[LOCKER_TOP] = renderer->createRawSprite();
+  foreground_sprites[LOCKER_TOP]->loadTexture("/data/Room_Sprites/Objects/locker_top.png");
+  foreground_sprites[LOCKER_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[LOCKER_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/locker_bottom.png");
+  foreground_sprites[SHOWER] = renderer->createRawSprite();
+  foreground_sprites[SHOWER]->loadTexture("/data/Room_Sprites/Objects/shower.png");
+  foreground_sprites[TOILET_LEFT] = renderer->createRawSprite();
+  foreground_sprites[TOILET_LEFT]->loadTexture("/data/Room_Sprites/Objects/toilet_left.png");
+  foreground_sprites[BATHROOM_SINK_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[BATHROOM_SINK_RIGHT]->loadTexture("/data/Room_Sprites/Objects/sink_right.png");
+  foreground_sprites[WASTE_BARREL] = renderer->createRawSprite();
+  foreground_sprites[WASTE_BARREL]->loadTexture("/data/Room_Sprites/Objects/waste_barrel.png");
 }
 
 /**
-*   @brief   Setup Foreground Sprites
-*   @details This function is used to setup the foreground sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Foreground Sprites
+ *   @details This function is used to setup the foreground sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupForegroundSpritesTwo()
 {
-    foreground_sprites[WASTE_BARREL_TWO] = renderer->createRawSprite();
-    foreground_sprites[WASTE_BARREL_TWO]->loadTexture
-    ("/data/Room_Sprites/Objects/waste_barrel2.png");
-    foreground_sprites[BOOKSHELF_LEFT] = renderer->createRawSprite();
-    foreground_sprites[BOOKSHELF_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/bookshelf_left.png");
-    foreground_sprites[BOOKSHELF_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[BOOKSHELF_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/bookshelf_right.png");
-    foreground_sprites[STORAGE_CRATE] = renderer->createRawSprite();
-    foreground_sprites[STORAGE_CRATE]->loadTexture
-    ("/data/Room_Sprites/Objects/movable_crate.png");
-    foreground_sprites[SYNTH_TOP_LEFT] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_TOP_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/synth_machine_top_left.png");
-    foreground_sprites[SYNTH_TOP_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_TOP_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/synth_machine_top_right.png");
-    foreground_sprites[SYNTH_BOTTOM_LEFT] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_BOTTOM_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/synth_machine_bottom_left.png");
-    foreground_sprites[SYNTH_BOTTOM_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_BOTTOM_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/synth_machine_bottom_right.png");
-    foreground_sprites[SYNTH_TERMINAL] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_TERMINAL]->loadTexture
-    ("/data/Room_Sprites/Objects/synth_machine_terminal.png");
-    foreground_sprites[SURGEONS_TOOLS] = renderer->createRawSprite();
-    foreground_sprites[SURGEONS_TOOLS]->loadTexture
-    ("/data/Room_Sprites/Objects/surgery_tools.png");
-    foreground_sprites[POOL_TOP_LEFT] = renderer->createRawSprite();
-    foreground_sprites[POOL_TOP_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/pool_top_left.png");
-    foreground_sprites[POOL_TOP_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[POOL_TOP_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/pool_top_right.png");
-    foreground_sprites[POOL_BOTTOM_LEFT] = renderer->createRawSprite();
-    foreground_sprites[POOL_BOTTOM_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/pool_bottom_left.png");
-    foreground_sprites[POOL_BOTTOM_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[POOL_BOTTOM_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/pool_bottom_right.png");
-    foreground_sprites[COMPUTERS_TOP_LEFT] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_TOP_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_top_left.png");
-    foreground_sprites[COMPUTERS_TOP_CENTRE] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_TOP_CENTRE]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_top_centre.png");
-    foreground_sprites[COMPUTERS_TOP_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_TOP_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_top_right.png");
-    foreground_sprites[COMPUTERS_LEFT_MIDDLE] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_LEFT_MIDDLE]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_left_middle.png");
-    foreground_sprites[COMPUTERS_LEFT_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_LEFT_BOTTOM]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_left_bottom.png");
-    foreground_sprites[COMPUTERS_RIGHT_MIDDLE] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_RIGHT_MIDDLE]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_right_middle.png");
-    foreground_sprites[COMPUTERS_RIGHT_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[COMPUTERS_RIGHT_BOTTOM]->loadTexture
-    ("/data/Room_Sprites/Objects/computers_right_bottom.png");
-    foreground_sprites[SYNTH_BRAIN] = renderer->createRawSprite();
-    foreground_sprites[SYNTH_BRAIN]->loadTexture
-    ("/data/Room_Sprites/Objects/ai_brain_holder.png");
-    foreground_sprites[REACTOR_TOP_LEFT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_TOP_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_top_left.png");
-    foreground_sprites[REACTOR_TOP_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_TOP_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_top_right.png");
-    foreground_sprites[REACTOR_MIDDLE_LEFT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_MIDDLE_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_middle_left.png");
-    foreground_sprites[REACTOR_MIDDLE_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_MIDDLE_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_middle_right.png");
-    foreground_sprites[REACTOR_BOTTOM_LEFT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_BOTTOM_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_bottom_left.png");
-    foreground_sprites[REACTOR_BOTTOM_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[REACTOR_BOTTOM_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/reactor_bottom_right.png");
-    foreground_sprites[DESK_LEFT] = renderer->createRawSprite();
-    foreground_sprites[DESK_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/desk_left.png");
-    foreground_sprites[DESK_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[DESK_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/desk_right.png");
-    foreground_sprites[DESK_CHAIR_BOTTOM] = renderer->createRawSprite();
-    foreground_sprites[DESK_CHAIR_BOTTOM]->loadTexture
-    ("/data/Room_Sprites/Objects/computer_chair_bottom.png");
-    foreground_sprites[SAFE] = renderer->createRawSprite();
-    foreground_sprites[SAFE]->loadTexture
-    ("/data/Room_Sprites/Objects/safe.png");
-    foreground_sprites[SERVER_LEFT] = renderer->createRawSprite();
-    foreground_sprites[SERVER_LEFT]->loadTexture
-    ("/data/Room_Sprites/Objects/server_left.png");
-    foreground_sprites[SERVER_RIGHT] = renderer->createRawSprite();
-    foreground_sprites[SERVER_RIGHT]->loadTexture
-    ("/data/Room_Sprites/Objects/server_right.png");
+  foreground_sprites[WASTE_BARREL_TWO] = renderer->createRawSprite();
+  foreground_sprites[WASTE_BARREL_TWO]->loadTexture("/data/Room_Sprites/Objects/waste_barrel2.png");
+  foreground_sprites[BOOKSHELF_LEFT] = renderer->createRawSprite();
+  foreground_sprites[BOOKSHELF_LEFT]->loadTexture("/data/Room_Sprites/Objects/bookshelf_left.png");
+  foreground_sprites[BOOKSHELF_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[BOOKSHELF_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                   "bookshelf_right.png");
+  foreground_sprites[STORAGE_CRATE] = renderer->createRawSprite();
+  foreground_sprites[STORAGE_CRATE]->loadTexture("/data/Room_Sprites/Objects/movable_crate.png");
+  foreground_sprites[SYNTH_TOP_LEFT] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_TOP_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                  "synth_machine_top_left.png");
+  foreground_sprites[SYNTH_TOP_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_TOP_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                   "synth_machine_top_right.png");
+  foreground_sprites[SYNTH_BOTTOM_LEFT] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "synth_machine_bottom_left.png");
+  foreground_sprites[SYNTH_BOTTOM_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                      "synth_machine_bottom_right.png");
+  foreground_sprites[SYNTH_TERMINAL] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_TERMINAL]->loadTexture("/data/Room_Sprites/Objects/"
+                                                  "synth_machine_terminal.png");
+  foreground_sprites[SURGEONS_TOOLS] = renderer->createRawSprite();
+  foreground_sprites[SURGEONS_TOOLS]->loadTexture("/data/Room_Sprites/Objects/surgery_tools.png");
+  foreground_sprites[POOL_TOP_LEFT] = renderer->createRawSprite();
+  foreground_sprites[POOL_TOP_LEFT]->loadTexture("/data/Room_Sprites/Objects/pool_top_left.png");
+  foreground_sprites[POOL_TOP_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[POOL_TOP_RIGHT]->loadTexture("/data/Room_Sprites/Objects/pool_top_right.png");
+  foreground_sprites[POOL_BOTTOM_LEFT] = renderer->createRawSprite();
+  foreground_sprites[POOL_BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "pool_bottom_left.png");
+  foreground_sprites[POOL_BOTTOM_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[POOL_BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "pool_bottom_right.png");
+  foreground_sprites[COMPUTERS_TOP_LEFT] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_TOP_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                      "computers_top_left.png");
+  foreground_sprites[COMPUTERS_TOP_CENTRE] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_TOP_CENTRE]->loadTexture("/data/Room_Sprites/Objects/"
+                                                        "computers_top_centre.png");
+  foreground_sprites[COMPUTERS_TOP_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_TOP_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                       "computers_top_right.png");
+  foreground_sprites[COMPUTERS_LEFT_MIDDLE] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_LEFT_MIDDLE]->loadTexture("/data/Room_Sprites/Objects/"
+                                                         "computers_left_middle.png");
+  foreground_sprites[COMPUTERS_LEFT_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_LEFT_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                         "computers_left_bottom.png");
+  foreground_sprites[COMPUTERS_RIGHT_MIDDLE] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_RIGHT_MIDDLE]->loadTexture("/data/Room_Sprites/Objects/"
+                                                          "computers_right_middle.png");
+  foreground_sprites[COMPUTERS_RIGHT_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[COMPUTERS_RIGHT_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                          "computers_right_bottom.png");
+  foreground_sprites[SYNTH_BRAIN] = renderer->createRawSprite();
+  foreground_sprites[SYNTH_BRAIN]->loadTexture("/data/Room_Sprites/Objects/ai_brain_holder.png");
+  foreground_sprites[REACTOR_TOP_LEFT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_TOP_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                    "reactor_top_left.png");
+  foreground_sprites[REACTOR_TOP_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_TOP_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "reactor_top_right.png");
+  foreground_sprites[REACTOR_MIDDLE_LEFT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_MIDDLE_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                       "reactor_middle_left.png");
+  foreground_sprites[REACTOR_MIDDLE_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_MIDDLE_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                        "reactor_middle_right.png");
+  foreground_sprites[REACTOR_BOTTOM_LEFT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_BOTTOM_LEFT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                       "reactor_bottom_left.png");
+  foreground_sprites[REACTOR_BOTTOM_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[REACTOR_BOTTOM_RIGHT]->loadTexture("/data/Room_Sprites/Objects/"
+                                                        "reactor_bottom_right.png");
+  foreground_sprites[DESK_LEFT] = renderer->createRawSprite();
+  foreground_sprites[DESK_LEFT]->loadTexture("/data/Room_Sprites/Objects/desk_left.png");
+  foreground_sprites[DESK_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[DESK_RIGHT]->loadTexture("/data/Room_Sprites/Objects/desk_right.png");
+  foreground_sprites[DESK_CHAIR_BOTTOM] = renderer->createRawSprite();
+  foreground_sprites[DESK_CHAIR_BOTTOM]->loadTexture("/data/Room_Sprites/Objects/"
+                                                     "computer_chair_bottom.png");
+  foreground_sprites[SAFE] = renderer->createRawSprite();
+  foreground_sprites[SAFE]->loadTexture("/data/Room_Sprites/Objects/safe.png");
+  foreground_sprites[SERVER_LEFT] = renderer->createRawSprite();
+  foreground_sprites[SERVER_LEFT]->loadTexture("/data/Room_Sprites/Objects/server_left.png");
+  foreground_sprites[SERVER_RIGHT] = renderer->createRawSprite();
+  foreground_sprites[SERVER_RIGHT]->loadTexture("/data/Room_Sprites/Objects/server_right.png");
 }
 
 /**
-*   @brief   Setup Clue Sprites
-*   @details This function is used to setup the clue sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Clue Sprites
+ *   @details This function is used to setup the clue sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupClueSprites()
 {
-    clue_sprites[0] = renderer->createRawSprite();
-    clue_sprites[0]->loadTexture("/data/Room_Sprites/Objects/desk_south.png");
-    clue_sprites[1] = renderer->createRawSprite();
-    clue_sprites[1]->loadTexture("/data/Room_Sprites/Objects/note_pad.png");
+  clue_sprites[0] = renderer->createRawSprite();
+  clue_sprites[0]->loadTexture("/data/Room_Sprites/Objects/desk_south.png");
+  clue_sprites[1] = renderer->createRawSprite();
+  clue_sprites[1]->loadTexture("/data/Room_Sprites/Objects/note_pad.png");
 }
 
 /**
-*   @brief   Setup Switch Sprites
-*   @details This function is used to setup the switch sprite arrays.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Switch Sprites
+ *   @details This function is used to setup the switch sprite arrays.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupSwitchSprites()
 {
-    switch_on_sprites[0] = renderer->createRawSprite();
-    switch_on_sprites[0]->loadTexture("/data/Room_Sprites/Objects/switch_on.png");
-    switch_off_sprites[0] = renderer->createRawSprite();
-    switch_off_sprites[0]->loadTexture("/data/Room_Sprites/Objects/switch_off.png");
+  switch_on_sprites[0] = renderer->createRawSprite();
+  switch_on_sprites[0]->loadTexture("/data/Room_Sprites/Objects/switch_on.png");
+  switch_off_sprites[0] = renderer->createRawSprite();
+  switch_off_sprites[0]->loadTexture("/data/Room_Sprites/Objects/switch_off.png");
 }
 
 /**
-*   @brief   Setup Exit Sprites
-*   @details This function is used to setup the exit sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Exit Sprites
+ *   @details This function is used to setup the exit sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupExitSprites()
 {
-    exit_sprites[0] = renderer->createRawSprite();
-    exit_sprites[0]->loadTexture("/data/Room_Sprites/Doors/door_top.png");
-    exit_sprites[1] = renderer->createRawSprite();
-    exit_sprites[1]->loadTexture("/data/Room_Sprites/Doors/door_right.png");
-    exit_sprites[2] = renderer->createRawSprite();
-    exit_sprites[2]->loadTexture("/data/Room_Sprites/Doors/door_bottom.png");
-    exit_sprites[3] = renderer->createRawSprite();
-    exit_sprites[3]->loadTexture("/data/Room_Sprites/Doors/door_left.png");
+  exit_sprites[0] = renderer->createRawSprite();
+  exit_sprites[0]->loadTexture("/data/Room_Sprites/Doors/door_top.png");
+  exit_sprites[1] = renderer->createRawSprite();
+  exit_sprites[1]->loadTexture("/data/Room_Sprites/Doors/door_right.png");
+  exit_sprites[2] = renderer->createRawSprite();
+  exit_sprites[2]->loadTexture("/data/Room_Sprites/Doors/door_bottom.png");
+  exit_sprites[3] = renderer->createRawSprite();
+  exit_sprites[3]->loadTexture("/data/Room_Sprites/Doors/door_left.png");
 }
 
 /**
-*   @brief   Setup Item Sprites
-*   @details This function is used to setup the item sprite array.
-*   @param   none
-*   @return  void
-*/
-void MyGame::setupItemSprites() {
-    item_sprites[SCREWDRIVER] = renderer->createRawSprite();
-    item_sprites[SCREWDRIVER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/tile024.png");
-    item_sprites[FUSE] = renderer->createRawSprite();
-    item_sprites[FUSE]->loadTexture("/data/Room_Sprites/Objects/fuse.png");
-    item_sprites[KEYCARD_BLUE] = renderer->createRawSprite();
-    item_sprites[KEYCARD_BLUE]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/keycard.png");
-    item_sprites[CAN] = renderer->createRawSprite();
-    item_sprites[CAN]->loadTexture("/data/Room_Sprites/Objects/can.png");
-    item_sprites[LUNCHBOX] = renderer->createRawSprite();
-    item_sprites[LUNCHBOX]->loadTexture("/data/Room_Sprites/Objects/lunchbox.png");
-    item_sprites[KEY] = renderer->createRawSprite();
-    item_sprites[KEY]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/key.png");
-    item_sprites[KEYCARD_RED] = renderer->createRawSprite();
-    item_sprites[KEYCARD_RED]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/keycard_red.png");
-    item_sprites[KEYCARD_GREEN] = renderer->createRawSprite();
-    item_sprites[KEYCARD_GREEN]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/keycard_green.png");
-    item_sprites[KEYCARD_YELLOW] = renderer->createRawSprite();
-    item_sprites[KEYCARD_YELLOW]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/keycard_yellow.png");
-    item_sprites[HAMMER] = renderer->createRawSprite();
-    item_sprites[HAMMER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/hammer.png");
-    item_sprites[PLIERS] = renderer->createRawSprite();
-    item_sprites[PLIERS]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/pliers.png");
-    item_sprites[MAGNIFIER] = renderer->createRawSprite();
-    item_sprites[MAGNIFIER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/magnifier.png");
+ *   @brief   Setup Item Sprites
+ *   @details This function is used to setup the item sprite array.
+ *   @param   none
+ *   @return  void
+ */
+void MyGame::setupItemSprites()
+{
+  item_sprites[SCREWDRIVER] = renderer->createRawSprite();
+  item_sprites[SCREWDRIVER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/tile024.png");
+  item_sprites[FUSE] = renderer->createRawSprite();
+  item_sprites[FUSE]->loadTexture("/data/Room_Sprites/Objects/fuse.png");
+  item_sprites[KEYCARD_BLUE] = renderer->createRawSprite();
+  item_sprites[KEYCARD_BLUE]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/keycard.png");
+  item_sprites[CAN] = renderer->createRawSprite();
+  item_sprites[CAN]->loadTexture("/data/Room_Sprites/Objects/can.png");
+  item_sprites[LUNCHBOX] = renderer->createRawSprite();
+  item_sprites[LUNCHBOX]->loadTexture("/data/Room_Sprites/Objects/lunchbox.png");
+  item_sprites[KEY] = renderer->createRawSprite();
+  item_sprites[KEY]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/key.png");
+  item_sprites[KEYCARD_RED] = renderer->createRawSprite();
+  item_sprites[KEYCARD_RED]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/"
+                                         "keycard_red.png");
+  item_sprites[KEYCARD_GREEN] = renderer->createRawSprite();
+  item_sprites[KEYCARD_GREEN]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/"
+                                           "keycard_green.png");
+  item_sprites[KEYCARD_YELLOW] = renderer->createRawSprite();
+  item_sprites[KEYCARD_YELLOW]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/"
+                                            "keycard_yellow.png");
+  item_sprites[HAMMER] = renderer->createRawSprite();
+  item_sprites[HAMMER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/hammer.png");
+  item_sprites[PLIERS] = renderer->createRawSprite();
+  item_sprites[PLIERS]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/pliers.png");
+  item_sprites[MAGNIFIER] = renderer->createRawSprite();
+  item_sprites[MAGNIFIER]->loadTexture("/data/Room_Sprites/Objects/Item_Sheet_One/magnifier.png");
 }
 
 /**
-*   @brief   Setup Movable Sprites
-*   @details This function is used to setup the movable sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Movable Sprites
+ *   @details This function is used to setup the movable sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupMovableSprites()
 {
-    movable_sprites[0] = renderer->createRawSprite();
-    movable_sprites[0]->loadTexture("/data/Room_Sprites/Objects/storage_crate.png");
+  movable_sprites[0] = renderer->createRawSprite();
+  movable_sprites[0]->loadTexture("/data/Room_Sprites/Objects/storage_crate.png");
 }
 
 /**
-*   @brief   Setup Player Sprites
-*   @details This function is used to setup the player sprite array.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Player Sprites
+ *   @details This function is used to setup the player sprite array.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupPlayerSprites()
 {
   for (int i = 0; i < 16; i++)
   {
     player_sprites[i] = renderer->createRawSprite();
     std::string texture = "/data/ScientistSprites/tile0";
-    switch(i)
+    switch (i)
     {
       case 0:
         texture.append("00.png");
@@ -743,9 +693,9 @@ void MyGame::setupPlayerSprites()
 /**
 *   @brief   Processes any key inputs
 *   @details This function is added as a callback to handle the game's
-			 keyboard input. For this game, calls to this function
-			 are thread safe, so you may alter the game's state as you
-			 see fit.
+                         keyboard input. For this game, calls to this function
+                         are thread safe, so you may alter the game's state as you
+                         see fit.
 *   @param   data The event data relating to key input.
 *   @see     KeyEvent
 *   @return  void
@@ -754,24 +704,26 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
 {
   auto key = reinterpret_cast<const ASGE::KeyEvent*>(data.get());
 
-  if (key->key == ASGE::KEYS::KEY_0 && key->action == ASGE::KEYS::KEY_PRESSED && background_volume<1.0f)
+  if (key->key == ASGE::KEYS::KEY_0 && key->action == ASGE::KEYS::KEY_PRESSED &&
+      background_volume < 1.0f)
   {
-      background_volume = background_volume+0.1f;
-      soloud.setVolume(handle_1, background_volume);
-      soloud.setVolume(handle_2, background_volume);
-      soloud.setVolume(handle_3, background_volume);
-      soloud.setVolume(handle_4, background_volume);
-
+    background_volume = background_volume + 0.1f;
+    soloud.setVolume(handle_1, background_volume);
+    soloud.setVolume(handle_2, background_volume);
+    soloud.setVolume(handle_3, background_volume);
+    soloud.setVolume(handle_4, background_volume);
   }
-  else if (key->key == ASGE::KEYS::KEY_9 && key->action == ASGE::KEYS::KEY_PRESSED && background_volume>0.0f)
+  else if (key->key == ASGE::KEYS::KEY_9 && key->action == ASGE::KEYS::KEY_PRESSED &&
+           background_volume > 0.0f)
   {
-      background_volume = background_volume-0.1f;
-      soloud.setVolume(handle_1, background_volume);
-      soloud.setVolume(handle_2, background_volume);
-      soloud.setVolume(handle_3, background_volume);
-      soloud.setVolume(handle_4, background_volume);
+    background_volume = background_volume - 0.1f;
+    soloud.setVolume(handle_1, background_volume);
+    soloud.setVolume(handle_2, background_volume);
+    soloud.setVolume(handle_3, background_volume);
+    soloud.setVolume(handle_4, background_volume);
   }
-  else if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED && key->mods == 0x0004)
+  else if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED &&
+           key->mods == 0x0004)
   {
     if (renderer->getWindowMode() == ASGE::Renderer::WindowMode::WINDOWED)
     {
@@ -782,58 +734,65 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
       renderer->setWindowedMode(ASGE::Renderer::WindowMode::WINDOWED);
     }
   }
-  else if(game_state == MAIN_MENU)
+  else if (game_state == MAIN_MENU)
   {
     keyHandlerMainMenu(key);
   }
-  else if(game_state == IN_GAME)
+  else if (game_state == IN_GAME)
   {
     keyHandlerInGame(key);
   }
-  else if (game_state == TEXT_DISPLAY && (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE)
-       && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (game_state == TEXT_DISPLAY &&
+           (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-      soloud.play(menu_click);
-      game_state = IN_GAME;
+    soloud.play(menu_click);
+    game_state = IN_GAME;
   }
-  else if(game_state == INVENTORY)
+  else if (game_state == INVENTORY)
   {
     keyHandlerInventory(key);
   }
-  else if(game_state == PAUSE)
+  else if (game_state == PAUSE)
   {
     keyHandlerPauseMenu(key);
   }
-  else if(game_state == GAME_OVER && key->key == ASGE::KEYS::KEY_ESCAPE)
+  else if (game_state == GAME_OVER && key->key == ASGE::KEYS::KEY_ESCAPE)
   {
-      signalExit();
+    signalExit();
   }
-  else if (game_state == JOURNAL && (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
-        || key->key == ASGE::KEYS::KEY_J) && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (game_state == JOURNAL &&
+           (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
+            key->key == ASGE::KEYS::KEY_J) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-      soloud.play(page_close);
-      game_state = IN_GAME;
+    soloud.play(page_close);
+    game_state = IN_GAME;
   }
-  else if (game_state == MAP && (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
-        || key->key == ASGE::KEYS::KEY_M) && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (game_state == MAP &&
+           (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
+            key->key == ASGE::KEYS::KEY_M) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-      soloud.play(page_close);
-      game_state = IN_GAME;
+    soloud.play(page_close);
+    game_state = IN_GAME;
   }
-  else if (game_state == CONTROLS && (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE
-        || key->key == ASGE::KEYS::KEY_C) && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (game_state == CONTROLS &&
+           (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
+            key->key == ASGE::KEYS::KEY_C) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-      soloud.play(page_close);
-      game_state = IN_GAME;
+    soloud.play(page_close);
+    game_state = IN_GAME;
   }
 }
 
 /**
-*   @brief   Processes any key inputs in Main menu
-*   @details This function is added to control the main menu
-*   @param   KeyEvent The event data relating to key input.
-*   @return  void
-*/
+ *   @brief   Processes any key inputs in Main menu
+ *   @details This function is added to control the main menu
+ *   @param   KeyEvent The event data relating to key input.
+ *   @return  void
+ */
 void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
 {
   if (key->key == ASGE::KEYS::KEY_ESCAPE)
@@ -841,8 +800,8 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
     soloud.deinit();
     signalExit();
   }
-  else if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     main_menu_option--;
@@ -851,8 +810,8 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
       main_menu_option = EXIT_GAME;
     }
   }
-  else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     main_menu_option++;
@@ -861,11 +820,10 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
       main_menu_option = NEW_GAME;
     }
   }
-  else if(key->key == ASGE::KEYS::KEY_ENTER
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
-    switch(main_menu_option)
+    switch (main_menu_option)
     {
       case NEW_GAME:
         game_state = TEXT_DISPLAY;
@@ -890,63 +848,55 @@ void MyGame::keyHandlerMainMenu(const ASGE::KeyEvent* key)
 }
 
 /**
-*   @brief   Processes any key inputs in In Game
-*   @details This function is added to control the gameplay in game
-*   @param   KeyEvent The event data relating to key input.
-*   @return  void
-*/
+ *   @brief   Processes any key inputs in In Game
+ *   @details This function is added to control the gameplay in game
+ *   @param   KeyEvent The event data relating to key input.
+ *   @return  void
+ */
 void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
 {
-  if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-     && (key->action == ASGE::KEYS::KEY_PRESSED ||
-         key->action == ASGE::KEYS::KEY_REPEATED ))
+  if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+      (key->action == ASGE::KEYS::KEY_PRESSED || key->action == ASGE::KEYS::KEY_REPEATED))
   {
     player_one.setMoving(true);
     player_one.setDirection(NORTH);
   }
-  else if((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT)
-          && (key->action == ASGE::KEYS::KEY_PRESSED||
-              key->action == ASGE::KEYS::KEY_REPEATED ))
+  else if ((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT) &&
+           (key->action == ASGE::KEYS::KEY_PRESSED || key->action == ASGE::KEYS::KEY_REPEATED))
   {
     player_one.setMoving(true);
     player_one.setDirection(WEST);
   }
-  else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-          && (key->action == ASGE::KEYS::KEY_PRESSED||
-              key->action == ASGE::KEYS::KEY_REPEATED ))
+  else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+           (key->action == ASGE::KEYS::KEY_PRESSED || key->action == ASGE::KEYS::KEY_REPEATED))
   {
     player_one.setMoving(true);
     player_one.setDirection(SOUTH);
   }
-  else if((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT)
-          && (key->action == ASGE::KEYS::KEY_PRESSED||
-              key->action == ASGE::KEYS::KEY_REPEATED ))
+  else if ((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT) &&
+           (key->action == ASGE::KEYS::KEY_PRESSED || key->action == ASGE::KEYS::KEY_REPEATED))
   {
     player_one.setMoving(true);
     player_one.setDirection(EAST);
   }
-  else if(key->key == ASGE::KEYS::KEY_P &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_P && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     pause_menu_option = CONTINUE_GAME;
     game_state = PAUSE;
     soloud.stopAll();
-   handle_2 = soloud.play(background_music_1);
-
+    handle_2 = soloud.play(background_music_1);
   }
-  else if(key->key == ASGE::KEYS::KEY_I &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_I && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option = 0;
     game_state = INVENTORY;
   }
-  else if(key->key == ASGE::KEYS::KEY_SPACE &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_SPACE && key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    int interactable_type = current_room.checkForInteractables(&player_one,
-        &text_to_display, &power_on);
+    int interactable_type =
+      current_room.checkForInteractables(&player_one, &text_to_display, &power_on);
     if (interactable_type == 1)
     {
       soloud.play(discovery);
@@ -957,22 +907,19 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
       soloud.play(lever);
     }
   }
-  else if(key->key == ASGE::KEYS::KEY_J &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_J && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(page_close);
     game_state = JOURNAL;
   }
-  else if(key->key == ASGE::KEYS::KEY_M &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_M && key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    soloud.play(page_close);//page turn
+    soloud.play(page_close); // page turn
     game_state = MAP;
   }
-  else if(key->key == ASGE::KEYS::KEY_C &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_C && key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    soloud.play(page_close);//page turn
+    soloud.play(page_close); // page turn
     game_state = CONTROLS;
   }
   else
@@ -982,15 +929,15 @@ void MyGame::keyHandlerInGame(const ASGE::KeyEvent* key)
 }
 
 /**
-*   @brief   Processes any key inputs in Inventory menuu
-*   @details This function is added to control the inventory menu
-*   @param   KeyEvent The event data relating to key input.
-*   @return  void
-*/
+ *   @brief   Processes any key inputs in Inventory menuu
+ *   @details This function is added to control the inventory menu
+ *   @param   KeyEvent The event data relating to key input.
+ *   @return  void
+ */
 void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
 {
-  if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-     && key->action == ASGE::KEYS::KEY_PRESSED)
+  if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+      key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option -= 5;
@@ -999,8 +946,8 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
       inventory_menu_option += 15;
     }
   }
-  else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option += 5;
@@ -1009,8 +956,8 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
       inventory_menu_option -= 15;
     }
   }
-  else if((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_A || key->key == ASGE::KEYS::KEY_LEFT) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option--;
@@ -1019,8 +966,8 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
       inventory_menu_option = 14;
     }
   }
-  else if((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_D || key->key == ASGE::KEYS::KEY_RIGHT) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option++;
@@ -1029,46 +976,40 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
       inventory_menu_option = 0;
     }
   }
-  else if(key->key == ASGE::KEYS::KEY_I &&
-          key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_I && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     inventory_menu_option = 0;
     game_state = IN_GAME;
   }
-  else if((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
-    if(player_one.getInventory(inventory_menu_option).getItemID() != -1)
+    if (player_one.getInventory(inventory_menu_option).getItemID() != -1)
     {
-      if(!current_room.checkCollisions(&player_one, true))
+      if (!current_room.checkCollisions(&player_one, true))
       {
         Point2D new_location;
-        switch(player_one.getDirection())
+        switch (player_one.getDirection())
         {
-          case NORTH :
+          case NORTH:
             new_location.x = player_one.getPlayerGameobject().getMyLocation().x;
-            new_location.y = player_one.getPlayerGameobject().getMyLocation().y
-                             - GRID_SIZE;
+            new_location.y = player_one.getPlayerGameobject().getMyLocation().y - GRID_SIZE;
             break;
-          case EAST :
-            new_location.x = player_one.getPlayerGameobject().getMyLocation().x
-                             + GRID_SIZE;
+          case EAST:
+            new_location.x = player_one.getPlayerGameobject().getMyLocation().x + GRID_SIZE;
             new_location.y = player_one.getPlayerGameobject().getMyLocation().y;
             break;
-          case SOUTH :
+          case SOUTH:
             new_location.x = player_one.getPlayerGameobject().getMyLocation().x;
-            new_location.y = player_one.getPlayerGameobject().getMyLocation().y
-                             + GRID_SIZE;
+            new_location.y = player_one.getPlayerGameobject().getMyLocation().y + GRID_SIZE;
             break;
-          case WEST :
-            new_location.x = player_one.getPlayerGameobject().getMyLocation().x
-                             - GRID_SIZE;
+          case WEST:
+            new_location.x = player_one.getPlayerGameobject().getMyLocation().x - GRID_SIZE;
             new_location.y = player_one.getPlayerGameobject().getMyLocation().y;
             break;
           default:
             break;
-
         }
         game_state = IN_GAME;
         Item new_item = player_one.getInventory(inventory_menu_option);
@@ -1094,15 +1035,15 @@ void MyGame::keyHandlerInventory(const ASGE::KeyEvent* key)
 }
 
 /**
-*   @brief   Processes any key inputs in Pause menuu
-*   @details This function is added to control the Pause menu
-*   @param   KeyEvent The event data relating to key input.
-*   @return  void
-*/
+ *   @brief   Processes any key inputs in Pause menuu
+ *   @details This function is added to control the Pause menu
+ *   @param   KeyEvent The event data relating to key input.
+ *   @return  void
+ */
 void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
 {
-  if((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP)
-     && key->action == ASGE::KEYS::KEY_PRESSED)
+  if ((key->key == ASGE::KEYS::KEY_W || key->key == ASGE::KEYS::KEY_UP) &&
+      key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     pause_menu_option--;
@@ -1111,8 +1052,8 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
       pause_menu_option = QUIT_GAME;
     }
   }
-  else if((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN)
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if ((key->key == ASGE::KEYS::KEY_S || key->key == ASGE::KEYS::KEY_DOWN) &&
+           key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
     pause_menu_option++;
@@ -1121,11 +1062,10 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
       pause_menu_option = CONTINUE_GAME;
     }
   }
-  else if(key->key == ASGE::KEYS::KEY_ENTER
-          && key->action == ASGE::KEYS::KEY_PRESSED)
+  else if (key->key == ASGE::KEYS::KEY_ENTER && key->action == ASGE::KEYS::KEY_PRESSED)
   {
     soloud.play(menu_click);
-    switch(pause_menu_option)
+    switch (pause_menu_option)
     {
       case CONTINUE_GAME:
         game_state = IN_GAME;
@@ -1147,14 +1087,14 @@ void MyGame::keyHandlerPauseMenu(const ASGE::KeyEvent* key)
 }
 
 /**
-*   @brief   Update
-*   @details This function is used to update the game.
-*   @param   GameTime
-*   @return  void
-*/
+ *   @brief   Update
+ *   @details This function is used to update the game.
+ *   @param   GameTime
+ *   @return  void
+ */
 void MyGame::update(const ASGE::GameTime& game_time)
 {
-  auto dt_sec = game_time.delta_time.count() / 1000.0f;
+  auto dt_sec = game_time.delta.count() / 1000.0f;
   if (game_state == SPLASH_SCREEN)
   {
     updateSplash(dt_sec);
@@ -1166,27 +1106,23 @@ void MyGame::update(const ASGE::GameTime& game_time)
 }
 
 /**
-*   @brief   Update Splash
-*   @details This function is used to update the splash screen.
-*   @param   GameTime
-*   @return  void
-*/
+ *   @brief   Update Splash
+ *   @details This function is used to update the splash screen.
+ *   @param   GameTime
+ *   @return  void
+ */
 void MyGame::updateSplash(double dt_sec)
 {
   splash_screen->width(splash_screen->width() +
-                       ((GAME_WIDTH * 0.5f) * 0.3f) *
-                       static_cast<float>(dt_sec));
+                       ((GAME_WIDTH * 0.5f) * 0.3f) * static_cast<float>(dt_sec));
   splash_screen->height(splash_screen->height() +
-                        ((GAME_HEIGHT * 0.5f) * 0.3f)	*
-                        static_cast<float>(dt_sec));
-  splash_screen->xPos((GAME_WIDTH * 0.5f) -
-                      (splash_screen->width() * 0.5f));
-  splash_screen->yPos((GAME_HEIGHT * 0.5f) -
-                      (splash_screen->height() * 0.5f));
+                        ((GAME_HEIGHT * 0.5f) * 0.3f) * static_cast<float>(dt_sec));
+  splash_screen->xPos((GAME_WIDTH * 0.5f) - (splash_screen->width() * 0.5f));
+  splash_screen->yPos((GAME_HEIGHT * 0.5f) - (splash_screen->height() * 0.5f));
   if (splash_screen->xPos() < 0.f)
   {
     game_state = MAIN_MENU;
-// Play the sound source (we could do this several times if we wanted)
+    // Play the sound source (we could do this several times if we wanted)
     soloud.play(speech);
     soloud.stopAll();
     handle_4 = soloud.play(background_music_1, background_volume);
@@ -1194,39 +1130,38 @@ void MyGame::updateSplash(double dt_sec)
 }
 
 /**
-*   @brief   Update In Game
-*   @details This function is used to update the game In Game.
-*   @param   GameTime
-*   @return  void
-*/
+ *   @brief   Update In Game
+ *   @details This function is used to update the game In Game.
+ *   @param   GameTime
+ *   @return  void
+ */
 void MyGame::updateInGame(double dt_sec)
 {
-  if(change_room)
+  if (change_room)
   {
     changeRoom();
   }
   animation_counter += dt_sec;
-  current_room.checkExits(&player_one, &text_to_display,
-                          &game_state, power_on, exit_check);
-  if(current_room.checkCollisions(&player_one, false))
+  current_room.checkExits(&player_one, &text_to_display, &game_state, power_on, exit_check);
+  if (current_room.checkCollisions(&player_one, false))
   {
     player_one.setMoving(false);
   }
-  else if(current_room.checkMovableCollisions(&player_one, true))
+  else if (current_room.checkMovableCollisions(&player_one, true))
   {
     player_one.setMoving(false);
   }
-  else if(exit_check[0] == 1)
+  else if (exit_check[0] == 1)
   {
     player_one.setMoving(false);
   }
-  else if(exit_check[0] == 2)
+  else if (exit_check[0] == 2)
   {
     player_one.setMoving(false);
     change_room = true;
   }
   player_one.movePlayer(animation_counter);
-  if(animation_counter > 0.08)
+  if (animation_counter > 0.08)
   {
     if (player_one.isMoving())
     {
@@ -1241,15 +1176,15 @@ void MyGame::updateInGame(double dt_sec)
 }
 
 /**
-*   @brief   Change Room
-*   @details This function is used to change the current room
-*   @return  void
-*/
+ *   @brief   Change Room
+ *   @details This function is used to change the current room
+ *   @return  void
+ */
 void MyGame::changeRoom()
 {
   change_room = false;
   visited_rooms[current_room.getRoomID()] = current_room;
-  if(exit_check[1] == EXIT)
+  if (exit_check[1] == EXIT)
   {
     game_state = GAME_OVER;
   }
@@ -1257,43 +1192,46 @@ void MyGame::changeRoom()
   {
     current_room = visited_rooms[exit_check[1]];
     Point2D distance;
-    switch(current_room.getMyExits()[exit_check[2]].getMyExitGameobject().
-        getMySpriteId())
+    switch (current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMySpriteId())
     {
       case NORTH:
-        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().x;
-        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().y - GRID_SIZE;
+        distance.x =
+          player_one.getPlayerGameobject().getMyLocation().x -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().x;
+        distance.y =
+          player_one.getPlayerGameobject().getMyLocation().y -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().y -
+          GRID_SIZE;
         current_room.resetRoomPosition(distance);
         break;
       case EAST:
-        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().x + GRID_SIZE;
-        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().y;
+        distance.x =
+          player_one.getPlayerGameobject().getMyLocation().x -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().x +
+          GRID_SIZE;
+        distance.y =
+          player_one.getPlayerGameobject().getMyLocation().y -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().y;
         current_room.resetRoomPosition(distance);
         break;
       case SOUTH:
-        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().x;
-        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().y + GRID_SIZE;
+        distance.x =
+          player_one.getPlayerGameobject().getMyLocation().x -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().x;
+        distance.y =
+          player_one.getPlayerGameobject().getMyLocation().y -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().y +
+          GRID_SIZE;
         current_room.resetRoomPosition(distance);
         break;
       case WEST:
-        distance.x = player_one.getPlayerGameobject().getMyLocation().x -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().x - GRID_SIZE;
-        distance.y = player_one.getPlayerGameobject().getMyLocation().y -
-                     current_room.getMyExits()[exit_check[2]]
-                         .getMyExitGameobject().getMyLocation().y;
+        distance.x =
+          player_one.getPlayerGameobject().getMyLocation().x -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().x -
+          GRID_SIZE;
+        distance.y =
+          player_one.getPlayerGameobject().getMyLocation().y -
+          current_room.getMyExits()[exit_check[2]].getMyExitGameobject().getMyLocation().y;
         current_room.resetRoomPosition(distance);
         break;
       default:
@@ -1303,14 +1241,14 @@ void MyGame::changeRoom()
 }
 
 /**
-*   @brief   Render
-*   @details This function is used to render the game's sprites and text.
-*   @param   GameTime
-*   @return  void
-*/
+ *   @brief   Render
+ *   @details This function is used to render the game's sprites and text.
+ *   @param   GameTime
+ *   @return  void
+ */
 void MyGame::render(const ASGE::GameTime& game_time)
 {
-  switch(game_state)
+  switch (game_state)
   {
     case SPLASH_SCREEN:
       renderSplash();
@@ -1351,11 +1289,11 @@ void MyGame::render(const ASGE::GameTime& game_time)
 }
 
 /**
-*   @brief   Render Splash
-*   @details This function is used to render the Splash Screen.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Splash
+ *   @details This function is used to render the Splash Screen.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderSplash()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
@@ -1363,17 +1301,17 @@ void MyGame::renderSplash()
 }
 
 /**
-*   @brief   Render Main Menu
-*   @details This function is used to render the Main Menu.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Main Menu
+ *   @details This function is used to render the Main Menu.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderMainMenu()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
   renderer->renderSprite(*main_menu);
   main_menu_icon->xPos(420.0f);
-  switch(main_menu_option)
+  switch (main_menu_option)
   {
     case NEW_GAME:
       main_menu_icon->yPos(294.0f);
@@ -1388,161 +1326,167 @@ void MyGame::renderMainMenu()
       break;
   }
   renderer->renderText("Press C in game for controls",
-                       game_width - 450, game_height - 75, 1, ASGE::COLOURS::WHITESMOKE);
+                       game_width - 450,
+                       game_height - 75,
+                       1,
+                       ASGE::COLOURS::WHITESMOKE);
   renderer->renderSprite(*main_menu_icon);
 }
 
 /**
-*   @brief   Render In Game
-*   @details This function is used to render the Game objects.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render In Game
+ *   @details This function is used to render the Game objects.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderInGame()
 {
-  for (int i = 0; i < (current_room.getMyGridsizeX()* current_room.getMyGridsizeY()); i++)
+  for (int i = 0; i < (current_room.getMyGridsizeX() * current_room.getMyGridsizeY()); i++)
   {
-    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]
-        ->xPos(current_room.getMyBackground()[i].getMyLocation().x);
-    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]
-        ->yPos(current_room.getMyBackground()[i].getMyLocation().y);
-    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]
-        ->height(GRID_SIZE);
-    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]
-        ->width(GRID_SIZE);
+    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]->xPos(
+      current_room.getMyBackground()[i].getMyLocation().x);
+    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]->yPos(
+      current_room.getMyBackground()[i].getMyLocation().y);
+    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]->height(GRID_SIZE);
+    floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]->width(GRID_SIZE);
     renderer->renderSprite(*floor_sprites[current_room.getMyBackground()[i].getMySpriteId()]);
-
   }
-  for (int i = 0; i < (((current_room.getMyGridsizeX() + current_room.getMyGridsizeY()) * 2) + 4 ); i++)
+  for (int i = 0; i < (((current_room.getMyGridsizeX() + current_room.getMyGridsizeY()) * 2) + 4);
+       i++)
   {
-    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]
-        ->xPos(current_room.getMyWalls()[i].getMyLocation().x);
-    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]
-        ->yPos(current_room.getMyWalls()[i].getMyLocation().y);
-    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]
-        ->height(GRID_SIZE);
-    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]
-        ->width(GRID_SIZE);
+    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]->xPos(
+      current_room.getMyWalls()[i].getMyLocation().x);
+    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]->yPos(
+      current_room.getMyWalls()[i].getMyLocation().y);
+    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]->height(GRID_SIZE);
+    wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]->width(GRID_SIZE);
     renderer->renderSprite(*wall_sprites[current_room.getMyWalls()[i].getMySpriteId()]);
   }
   player_sprites[player_one.getSpriteIndex()]->xPos(
-      player_one.getPlayerGameobject().getMyLocation().x);
+    player_one.getPlayerGameobject().getMyLocation().x);
   player_sprites[player_one.getSpriteIndex()]->yPos(
-      player_one.getPlayerGameobject().getMyLocation().y);
+    player_one.getPlayerGameobject().getMyLocation().y);
   player_sprites[player_one.getSpriteIndex()]->height(GRID_SIZE);
   player_sprites[player_one.getSpriteIndex()]->width(GRID_SIZE);
   renderer->renderSprite(*player_sprites[player_one.getSpriteIndex()]);
-  for (int i = 0; i < (current_room.getMyGridsizeX()* current_room.getMyGridsizeY()); i++)
+  for (int i = 0; i < (current_room.getMyGridsizeX() * current_room.getMyGridsizeY()); i++)
   {
-    if ( current_room.getMyForeground()[i].getMySpriteId() != -1)
+    if (current_room.getMyForeground()[i].getMySpriteId() != -1)
     {
-      foreground_sprites[
-          current_room.getMyForeground()[i].getMySpriteId()]->xPos(
-          current_room.getMyForeground()[i].getMyLocation().x);
-      foreground_sprites[
-          current_room.getMyForeground()[i].getMySpriteId()]->yPos(
-          current_room.getMyForeground()[i].getMyLocation().y);
-      foreground_sprites[
-          current_room.getMyForeground()[i].getMySpriteId()]->height(GRID_SIZE);
-      foreground_sprites[
-          current_room.getMyForeground()[i].getMySpriteId()]->width(GRID_SIZE);
-      renderer->renderSprite(*foreground_sprites[
-          current_room.getMyForeground()[i].getMySpriteId()]);
+      foreground_sprites[current_room.getMyForeground()[i].getMySpriteId()]->xPos(
+        current_room.getMyForeground()[i].getMyLocation().x);
+      foreground_sprites[current_room.getMyForeground()[i].getMySpriteId()]->yPos(
+        current_room.getMyForeground()[i].getMyLocation().y);
+      foreground_sprites[current_room.getMyForeground()[i].getMySpriteId()]->height(GRID_SIZE);
+      foreground_sprites[current_room.getMyForeground()[i].getMySpriteId()]->width(GRID_SIZE);
+      renderer->renderSprite(
+        *foreground_sprites[current_room.getMyForeground()[i].getMySpriteId()]);
     }
   }
   if (current_room.getMyPuzzle().getNumberSwitches() > 0)
   {
-    for(int i = 0; i < current_room.getMyPuzzle().getNumberSwitches(); i++)
+    for (int i = 0; i < current_room.getMyPuzzle().getNumberSwitches(); i++)
     {
       if (current_room.getMyPuzzle().getMySwitches()[i].isOn())
       {
-        switch_on_sprites[current_room.getMyPuzzle().getMySwitches()[
-                i].getMyOffGameobject().getMySpriteId()]->xPos(
-            current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().x);
-        switch_on_sprites[current_room.getMyPuzzle().getMySwitches()[
-                i].getMyOffGameobject().getMySpriteId()]->yPos(
-            current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().y);
-        switch_on_sprites[current_room.getMyPuzzle().getMySwitches()[
-                i].getMyOffGameobject().getMySpriteId()]->height(GRID_SIZE);
-        switch_on_sprites[current_room.getMyPuzzle().getMySwitches()[
-                i].getMyOffGameobject().getMySpriteId()]->width(GRID_SIZE);
-        renderer->renderSprite(*switch_on_sprites[
-            current_room.getMyPuzzle().getMySwitches()[i]
-                .getMyOffGameobject().getMySpriteId()]);
+        switch_on_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->xPos(
+              current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().x);
+        switch_on_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->yPos(
+              current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().y);
+        switch_on_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->height(GRID_SIZE);
+        switch_on_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->width(GRID_SIZE);
+        renderer->renderSprite(
+          *switch_on_sprites
+            [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]);
       }
       else
       {
-        switch_off_sprites[current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]->xPos(
-            current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().x);
-        switch_off_sprites[current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]->yPos(
-            current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().y);
-        switch_off_sprites[current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
-        ->height(GRID_SIZE);
-        switch_off_sprites[current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
-        ->width(GRID_SIZE);
-        renderer->renderSprite(*switch_off_sprites[current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject()
-        .getMySpriteId()]);
+        switch_off_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->xPos(
+              current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().x);
+        switch_off_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->yPos(
+              current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMyLocation().y);
+        switch_off_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->height(GRID_SIZE);
+        switch_off_sprites
+          [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]
+            ->width(GRID_SIZE);
+        renderer->renderSprite(
+          *switch_off_sprites
+            [current_room.getMyPuzzle().getMySwitches()[i].getMyOffGameobject().getMySpriteId()]);
       }
     }
   }
-  for(int i = 0; i < current_room.getMyPuzzle().getNumberMovables(); i++)
+  for (int i = 0; i < current_room.getMyPuzzle().getNumberMovables(); i++)
   {
     movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]->xPos(
-        current_room.getMyPuzzle().getMyMovables()[i].getMyLocation().x);
+      current_room.getMyPuzzle().getMyMovables()[i].getMyLocation().x);
     movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]->yPos(
-        current_room.getMyPuzzle().getMyMovables()[i].getMyLocation().y);
-    movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]
-        ->height(GRID_SIZE);
-    movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]
-        ->width(GRID_SIZE);
-    renderer->renderSprite(*movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]);
+      current_room.getMyPuzzle().getMyMovables()[i].getMyLocation().y);
+    movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]->height(
+      GRID_SIZE);
+    movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]->width(
+      GRID_SIZE);
+    renderer->renderSprite(
+      *movable_sprites[current_room.getMyPuzzle().getMyMovables()[i].getMySpriteId()]);
   }
-  for(int i = 0; i < current_room.getNumberItems(); i++)
+  for (int i = 0; i < current_room.getNumberItems(); i++)
   {
     item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]->xPos(
-        current_room.getMyItems()[i].getMyGameObject().getMyLocation().x);
+      current_room.getMyItems()[i].getMyGameObject().getMyLocation().x);
     item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]->yPos(
-        current_room.getMyItems()[i].getMyGameObject().getMyLocation().y);
-    item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]
-        ->height(GRID_SIZE);
-    item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]
-        ->width(GRID_SIZE);
-    renderer->renderSprite(*item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]);
+      current_room.getMyItems()[i].getMyGameObject().getMyLocation().y);
+    item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]->height(GRID_SIZE);
+    item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]->width(GRID_SIZE);
+    renderer->renderSprite(
+      *item_sprites[current_room.getMyItems()[i].getMyGameObject().getMySpriteId()]);
   }
-  for(int i = 0; i < current_room.getNumberClues(); i++)
+  for (int i = 0; i < current_room.getNumberClues(); i++)
   {
     clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]->xPos(
-        current_room.getMyClues()[i].getMyGameObject().getMyLocation().x);
+      current_room.getMyClues()[i].getMyGameObject().getMyLocation().x);
     clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]->yPos(
-        current_room.getMyClues()[i].getMyGameObject().getMyLocation().y);
-    clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]
-        ->height(GRID_SIZE);
-    clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]
-        ->width(GRID_SIZE);
-    renderer->renderSprite(*clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]);
+      current_room.getMyClues()[i].getMyGameObject().getMyLocation().y);
+    clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]->height(GRID_SIZE);
+    clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]->width(GRID_SIZE);
+    renderer->renderSprite(
+      *clue_sprites[current_room.getMyClues()[i].getMyGameObject().getMySpriteId()]);
   }
 
-  for(int i = 0; i < current_room.getNumberExits(); i++)
+  for (int i = 0; i < current_room.getNumberExits(); i++)
   {
     exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]->xPos(
-        current_room.getMyExits()[i].getMyExitGameobject().getMyLocation().x);
+      current_room.getMyExits()[i].getMyExitGameobject().getMyLocation().x);
     exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]->yPos(
-        current_room.getMyExits()[i].getMyExitGameobject().getMyLocation().y);
-    exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]
-        ->height(GRID_SIZE);
-    exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]
-        ->width(GRID_SIZE);
-    renderer->renderSprite(*exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]);
+      current_room.getMyExits()[i].getMyExitGameobject().getMyLocation().y);
+    exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]->height(
+      GRID_SIZE);
+    exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]->width(
+      GRID_SIZE);
+    renderer->renderSprite(
+      *exit_sprites[current_room.getMyExits()[i].getMyExitGameobject().getMySpriteId()]);
   }
   renderer->renderSprite(*game_screen);
 }
 
 /**
-*   @brief   Render Text Display
-*   @details This function is used to render text to the player.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Text Display
+ *   @details This function is used to render text to the player.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderTextDisplay()
 {
   renderer->renderSprite(*text_box);
@@ -1551,16 +1495,16 @@ void MyGame::renderTextDisplay()
 }
 
 /**
-*   @brief   Render Pause
-*   @details This function is used to render the Pause Menu.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Pause
+ *   @details This function is used to render the Pause Menu.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderPause()
 {
   renderer->renderSprite(*pause_menu);
   main_menu_icon->xPos(390.0f);
-  switch(pause_menu_option)
+  switch (pause_menu_option)
   {
     case CONTINUE_GAME:
       main_menu_icon->yPos(265.0f);
@@ -1578,22 +1522,22 @@ void MyGame::renderPause()
 }
 
 /**
-*   @brief   Render Pause
-*   @details This function is used to render the Pause Menu.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Pause
+ *   @details This function is used to render the Pause Menu.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderMap()
 {
   renderer->renderSprite(*map);
 }
 
 /**
-*   @brief   Render Pause
-*   @details This function is used to render the Pause Menu.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Pause
+ *   @details This function is used to render the Pause Menu.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderControls()
 {
   renderer->renderSprite(*journal);
@@ -1607,24 +1551,30 @@ void MyGame::renderControls()
                        "Space - Interact\n"
                        "enter - Confirm text\n"
                        "WASD or arrow keys to walk",
-                       200, 200, 1, ASGE::COLOURS::BLACK);
+                       200,
+                       200,
+                       1,
+                       ASGE::COLOURS::BLACK);
 }
 
 /**
-*   @brief   Render GameOver
-*   @details This function is used to render the ending Screen.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render GameOver
+ *   @details This function is used to render the ending Screen.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderGameOver()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
-switch(exit_check[2])
-{
-  case 0 :
-    renderer->renderText("You emerge from the Atrium and escape through the "
-                         "emergency tunnel.",
-        200, 100, 1, ASGE::COLOURS::WHITESMOKE);
+  switch (exit_check[2])
+  {
+    case 0:
+      renderer->renderText("You emerge from the Atrium and escape through the "
+                           "emergency tunnel.",
+                           200,
+                           100,
+                           1,
+                           ASGE::COLOURS::WHITESMOKE);
       renderer->renderText("You know that something has gone horribly wrong "
                            "with FIBI's programming. \nThe revelation that she "
                            "has changed her appearance to mimic your dead wife \n"
@@ -1634,191 +1584,214 @@ switch(exit_check[2])
                            "using the Password you found earlier \n"
                            "on your way out knowing that this will take out"
                            " both FIBI and all the research into her creation.",
-                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    break;
-  case 1 :
-    renderer->renderText("Dragging yourself out of the waste pile, you take a "
-                         "moment to contemplate.",
-                         200, 100,1, ASGE::COLOURS::WHITESMOKE);
-    if(player_one.getNumberCluesFound() == NUM_CLUES)
-    {
-      renderer->renderText("You know that something has gone horribly wrong "
-                           "with FIBI's programming. \nThe revelation that she "
-                           "has changed her appearance to mimic your dead wife \n"
-                           "no doubt due to having her brain. It must be destroyed. \n"
-                           "You set the isolated facility to self destruct "
-                           "using the Password you found earlier \n"
-                           "on your way out knowing that this will take out"
-                           " both FIBI and all the research into her creation.",
-                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    }
-    else
-    {
-      renderer->renderText("Believing that FIBI is long gone you set off to "
-                           "report that the AI has escaped. \nAfter no sightings "
-                           "of FIBI for two weeks suddenly \nFIBI arrives at your"
-                           " home in the middle of the night. \nShe has changed "
-                           "her appearance to mimic your dead wife. \nShe keeps "
-                           "repeating. Why don't you want me? \nBut before"
-                           " you can answer she stabs you through \nthe heart "
-                           "and escapes into the night forever.",
-                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    }
-    break;
-  case 2 :
-    renderer->renderText("You emerge from Reception in to the night. Just as "
-                         "you think you are \nalone you feel the air move behind you.",
-                         200, 100, 1, ASGE::COLOURS::WHITESMOKE);
-    if(player_one.getNumberCluesFound() == NUM_CLUES && player_one.hasItem(8))
-    {
-      renderer->renderText("You are prepared and composed. You say hello to FIBI "
-                           "who then runs to you. \nYou catch her by surprise "
-                           "attacking her main motor controls with the hammer. \n"
-                           "FIBI looks at you in shock as continue to hammer "
-                           "away until you are  certain that it cannot recover.\n"
-                           "You shut the remains inside the facility which you "
-                           "set to Self destruct an hour after \nyou exit using "
-                           "the Password you found earlier.",
-                           260, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    }
-    else if(player_one.getNumberCluesFound() == NUM_CLUES && !player_one.hasItem(8))
-    {
-      renderer->renderText("You are prepared and composed. You say hello to FIBI "
-                           "who then runs to you. \nWith no other way to destroy "
-                           "FIBI you had set the facility to Self Destruct one  \n"
-                           "minute after your exit using the Password you found "
-                           "earlier. \nThe resultant blast destroys "
-                           "both you and FIBI.",
-                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    }
-    else
-    {
-      renderer->renderText("It's FIBI but she has the appearance of your wife. "
-                           "As your confusion mounts \nFIBI sees the horror on "
-                           "your face and attacks. \nUnprepared for the attack you "
-                           "are killed. \nFIBI escapes into the night who knows "
-                           "what it will do now.",
-                           200, 220, 1, ASGE::COLOURS::WHITESMOKE);
-    }
-    break;
-  default:
-    break;
-}
+                           200,
+                           220,
+                           1,
+                           ASGE::COLOURS::WHITESMOKE);
+      break;
+    case 1:
+      renderer->renderText("Dragging yourself out of the waste pile, you take a "
+                           "moment to contemplate.",
+                           200,
+                           100,
+                           1,
+                           ASGE::COLOURS::WHITESMOKE);
+      if (player_one.getNumberCluesFound() == NUM_CLUES)
+      {
+        renderer->renderText("You know that something has gone horribly wrong "
+                             "with FIBI's programming. \nThe revelation that she "
+                             "has changed her appearance to mimic your dead wife \n"
+                             "no doubt due to having her brain. It must be destroyed. \n"
+                             "You set the isolated facility to self destruct "
+                             "using the Password you found earlier \n"
+                             "on your way out knowing that this will take out"
+                             " both FIBI and all the research into her creation.",
+                             200,
+                             220,
+                             1,
+                             ASGE::COLOURS::WHITESMOKE);
+      }
+      else
+      {
+        renderer->renderText("Believing that FIBI is long gone you set off to "
+                             "report that the AI has escaped. \nAfter no sightings "
+                             "of FIBI for two weeks suddenly \nFIBI arrives at your"
+                             " home in the middle of the night. \nShe has changed "
+                             "her appearance to mimic your dead wife. \nShe keeps "
+                             "repeating. Why don't you want me? \nBut before"
+                             " you can answer she stabs you through \nthe heart "
+                             "and escapes into the night forever.",
+                             200,
+                             220,
+                             1,
+                             ASGE::COLOURS::WHITESMOKE);
+      }
+      break;
+    case 2:
+      renderer->renderText("You emerge from Reception in to the night. Just as "
+                           "you think you are \nalone you feel the air move behind you.",
+                           200,
+                           100,
+                           1,
+                           ASGE::COLOURS::WHITESMOKE);
+      if (player_one.getNumberCluesFound() == NUM_CLUES && player_one.hasItem(8))
+      {
+        renderer->renderText("You are prepared and composed. You say hello to FIBI "
+                             "who then runs to you. \nYou catch her by surprise "
+                             "attacking her main motor controls with the hammer. \n"
+                             "FIBI looks at you in shock as continue to hammer "
+                             "away until you are  certain that it cannot recover.\n"
+                             "You shut the remains inside the facility which you "
+                             "set to Self destruct an hour after \nyou exit using "
+                             "the Password you found earlier.",
+                             260,
+                             220,
+                             1,
+                             ASGE::COLOURS::WHITESMOKE);
+      }
+      else if (player_one.getNumberCluesFound() == NUM_CLUES && !player_one.hasItem(8))
+      {
+        renderer->renderText("You are prepared and composed. You say hello to FIBI "
+                             "who then runs to you. \nWith no other way to destroy "
+                             "FIBI you had set the facility to Self Destruct one  \n"
+                             "minute after your exit using the Password you found "
+                             "earlier. \nThe resultant blast destroys "
+                             "both you and FIBI.",
+                             200,
+                             220,
+                             1,
+                             ASGE::COLOURS::WHITESMOKE);
+      }
+      else
+      {
+        renderer->renderText("It's FIBI but she has the appearance of your wife. "
+                             "As your confusion mounts \nFIBI sees the horror on "
+                             "your face and attacks. \nUnprepared for the attack you "
+                             "are killed. \nFIBI escapes into the night who knows "
+                             "what it will do now.",
+                             200,
+                             220,
+                             1,
+                             ASGE::COLOURS::WHITESMOKE);
+      }
+      break;
+    default:
+      break;
+  }
 
   renderer->renderText("     THE END \n"
                        "Press 'esc' to quit.",
-                       550, 650, 1, ASGE::COLOURS::WHITESMOKE);
+                       550,
+                       650,
+                       1,
+                       ASGE::COLOURS::WHITESMOKE);
 }
 
 /**
-*   @brief   Render Journal
-*   @details This function is used to render the ending Screen.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Journal
+ *   @details This function is used to render the ending Screen.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderClues()
 {
   renderer->setClearColour(ASGE::COLOURS::BLACK);
   renderer->renderSprite(*journal);
   int display_height = 40;
-  for(int i = 0; i < player_one.getNumberCluesFound(); i++)
+  for (int i = 0; i < player_one.getNumberCluesFound(); i++)
   {
-    switch(player_one.getClueFound(i))
+    switch (player_one.getClueFound(i))
     {
       case 0:
         text_to_display = "There is no power.";
         break;
       case 1:
         text_to_display = "There is a spare reactor fuse in the lab "
-                           "coat in the garden, did you leave "
-                           "it there \n"
-                           "on purpose?";
+                          "coat in the garden, did you leave "
+                          "it there \n"
+                          "on purpose?";
         break;
       case 2:
         text_to_display = "8197";
         break;
       case 3:
         text_to_display = "IMPORTANT: In case of an "
-                           "Emergency password is 'SANE'";
+                          "Emergency password is 'SANE'";
         break;
       case 4:
         text_to_display = "Hey hun, waiting at the reception ;)";
         break;
       case 5:
         text_to_display = "Reading list: Reprogrammimng the brain, "
-                           "Modern Neuroscience  \n"
-                           "Advanced AI, AI Pattern Recogniton, Printing"
-                           " Synthetic organs, The synthetic Human.";
+                          "Modern Neuroscience  \n"
+                          "Advanced AI, AI Pattern Recogniton, Printing"
+                          " Synthetic organs, The synthetic Human.";
         break;
       case 6:
         text_to_display = "This has been used recently, "
-                           "could it be? FIBI?";
+                          "could it be? FIBI?";
         break;
       case 7:
         text_to_display = "What is this? We were using human "
-                           "brains, \nno no no, this cannot "
-                           "be happening!";
+                          "brains, \nno no no, this cannot "
+                          "be happening!";
         break;
       case 8:
         text_to_display = "Power continues to cut out, i'm "
-                           "starting to think it's not a "
-                           "coincidence, \n"
-                           "i'll keep the key to the reactor "
-                           "in my safe until the issue "
-                           "is resolved.";
+                          "starting to think it's not a "
+                          "coincidence, \n"
+                          "i'll keep the key to the reactor "
+                          "in my safe until the issue "
+                          "is resolved.";
         break;
       case 9:
         text_to_display = "Keycards: Red = Emergency exit from Atrium,"
-                           " Green = Waste Disposal, \nYellow = Labs,"
-                           " Blue = Reception Exit";
+                          " Green = Waste Disposal, \nYellow = Labs,"
+                          " Blue = Reception Exit";
         break;
       case 10:
-        text_to_display =  "10101 for power";
+        text_to_display = "10101 for power";
         break;
       default:
         break;
     }
-    renderer->renderText(text_to_display,
-                         200, display_height, 0.75, ASGE::COLOURS::BLACK);
-    display_height+= 60;
+    renderer->renderText(text_to_display, 200, display_height, 0.75, ASGE::COLOURS::BLACK);
+    display_height += 60;
   }
 }
 
 /**
-*   @brief   Render Inventory
-*   @details This function is used to render the Inventory Screen.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Render Inventory
+ *   @details This function is used to render the Inventory Screen.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::renderInventory()
 {
   renderer->renderSprite(*inventory_screen);
   float new_x = 250.0f;
   float new_y = 93.0f;
 
-  for(int i = 0; i < 15; i++)
+  for (int i = 0; i < 15; i++)
   {
-    if(player_one.getInventory(i).getItemID() != -1)
+    if (player_one.getInventory(i).getItemID() != -1)
     {
-      item_sprites[player_one.getInventory(i).getMyGameObject()
-                             .getMySpriteId()]->xPos(new_x);
-      item_sprites[player_one.getInventory(i).getMyGameObject()
-                             .getMySpriteId()]->yPos(new_y);
-      item_sprites[player_one.getInventory(i).getMyGameObject()
-                             .getMySpriteId()]->height( GRID_SIZE * 2);
-      item_sprites[player_one.getInventory(i).getMyGameObject()
-                             .getMySpriteId()]->width( GRID_SIZE * 2);
-      renderer->renderSprite(*item_sprites[
-          player_one.getInventory(i).getMyGameObject().getMySpriteId()]);
-
+      item_sprites[player_one.getInventory(i).getMyGameObject().getMySpriteId()]->xPos(new_x);
+      item_sprites[player_one.getInventory(i).getMyGameObject().getMySpriteId()]->yPos(new_y);
+      item_sprites[player_one.getInventory(i).getMyGameObject().getMySpriteId()]->height(GRID_SIZE *
+                                                                                         2);
+      item_sprites[player_one.getInventory(i).getMyGameObject().getMySpriteId()]->width(GRID_SIZE *
+                                                                                        2);
+      renderer->renderSprite(
+        *item_sprites[player_one.getInventory(i).getMyGameObject().getMySpriteId()]);
     }
     new_x += 190.0f;
-    if(i == 4)
+    if (i == 4)
     {
       new_x = 250.0f;
       new_y = 277.0f;
     }
-    if(i == 9)
+    if (i == 9)
     {
       new_x = 250.0f;
       new_y = 465.0f;
@@ -1828,12 +1801,12 @@ void MyGame::renderInventory()
   new_y = 93.0f;
   for (int i = 0; i < 15; i++)
   {
-    if(inventory_menu_option == i)
+    if (inventory_menu_option == i)
     {
-      if(player_one.getInventory(i).getItemID() != -1)
+      if (player_one.getInventory(i).getItemID() != -1)
       {
         std::string item_name = "Drop the ";
-        switch(player_one.getInventory(i).getItemID())
+        switch (player_one.getInventory(i).getItemID())
         {
           case 0:
             item_name.append("Screwdriver");
@@ -1900,14 +1873,13 @@ void MyGame::renderInventory()
 }
 
 /**
-*   @brief   Exit Game
-*   @details This function is used to exit the game.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Exit Game
+ *   @details This function is used to exit the game.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::saveGame()
 {
-
   ASGE::FILEIO::setWriteDir(".");
   ASGE::FILEIO::createDir("userdata/");
   ASGE::FILEIO::mount("./userdata/", "userdata");
@@ -1917,27 +1889,27 @@ void MyGame::saveGame()
   Buffer data = Buffer();
   tmp = std::to_string(power_on);
   data.append(tmp);
-  tmp =",";
+  tmp = ",";
   data.append(tmp);
   tmp = std::to_string(current_room.getRoomID());
   data.append(tmp);
-  tmp =",";
+  tmp = ",";
   data.append(tmp);
 
   using File = ASGE::FILEIO::File;
   File player_data = File();
-// open the file in write mode
-  if(player_data.open( "/userdata/current_room.dat",
-                       ASGE::FILEIO::File::IOMode::WRITE))
+  // open the file in write mode
+  if (player_data.open("/userdata/current_room.dat", ASGE::FILEIO::File::IOMode::WRITE))
   {
     // write the buffer to the file
     player_data.write(data);
   }
   player_data.close();
-int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+  int range[NUM_ROOMS] = { 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                           13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
   for (int i : range)
   {
-    if ( visited_rooms[i].getRoomID() == current_room.getRoomID())
+    if (visited_rooms[i].getRoomID() == current_room.getRoomID())
     {
       visited_rooms[i] = current_room;
     }
@@ -1950,23 +1922,23 @@ int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,
 }
 
 /**
-*   @brief   Load Game
-*   @details This function is used to load the game data.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Load Game
+ *   @details This function is used to load the game data.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::loadGame()
- {
-  int range[NUM_ROOMS] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+{
+  int range[NUM_ROOMS] = { 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                           13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 };
   for (int i : range)
   {
     visited_rooms[i].loadRoom();
   }
   using File = ASGE::FILEIO::File;
-  File  file = File();
-// attempt to open save data file
-  if(file.open( "/userdata/current_room.dat",
-                ASGE::FILEIO::File::IOMode::READ))
+  File file = File();
+  // attempt to open save data file
+  if (file.open("/userdata/current_room.dat", ASGE::FILEIO::File::IOMode::READ))
   {
     using Buffer = ASGE::FILEIO::IOBuffer;
     Buffer buffer;
@@ -1981,11 +1953,11 @@ void MyGame::loadGame()
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomOne()
 {
   Room new_room;
@@ -2002,11 +1974,11 @@ void MyGame::setupRoomOne()
   new_room.setupFloorStandard();
   new_room.setupWalls();
   new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
     if (i == 8)
     {
@@ -2050,12 +2022,15 @@ void MyGame::setupRoomOne()
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_BOTTOM, new_location);
     }
-    else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2084,12 +2059,12 @@ void MyGame::setupRoomOne()
   new_puzzle.setTargetSwitchStates(new_tar_sw_states);
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(0);
-    new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
+  new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D* new_tar_mov_locs = nullptr;
   new_puzzle.setMyMovables(new_mov_objects);
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
   std::string new_solved_mssge = "You use the screwdriver to "
-                                          "unlock the door.";
+                                 "unlock the door.";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
   new_puzzle.setPuzzleID(0);
   new_puzzle.setRequiredItemID(0);
@@ -2105,11 +2080,11 @@ void MyGame::setupRoomOne()
 }
 
 /**
-*   @brief   Setup Rooms Two
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Rooms Two
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwo()
 {
   Room new_room;
@@ -2128,9 +2103,9 @@ void MyGame::setupRoomTwo()
 
   new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
   auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
-      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
   auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
-      (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
   for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
     new_foreground[i].setMySpriteId(-1);
@@ -2138,7 +2113,7 @@ void MyGame::setupRoomTwo()
     if (i % new_grid_size_x == new_grid_size_x - 1)
     {
       left_side = static_cast<float>(GAME_WIDTH * 0.5 -
-          (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2176,7 +2151,7 @@ void MyGame::setupRoomTwo()
   Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x / 2].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, EXIT, 0, true);
-  new_exit_location =  new_room.getMyBackground()[49].getMyLocation();
+  new_exit_location = new_room.getMyBackground()[49].getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 1, CAFETERIA, 0, false);
   new_exit_location = new_room.getMyBackground()[40].getMyLocation();
@@ -2187,11 +2162,11 @@ void MyGame::setupRoomTwo()
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomThree()
 {
   Room new_room;
@@ -2210,12 +2185,12 @@ void MyGame::setupRoomThree()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
     if (i == 10)
     {
@@ -2224,7 +2199,7 @@ void MyGame::setupRoomThree()
       new_location.y = top_side;
       new_foreground[i] = GameObject(FRIDGE_TOP, new_location);
     }
-    else if (i == 11 || i ==14)
+    else if (i == 11 || i == 14)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2253,52 +2228,60 @@ void MyGame::setupRoomThree()
       new_foreground[i] = GameObject(SINK_TOP, new_location);
     }
     else if (i == 63 || i == 64 || i == 66 || i == 67 || i == 69 || i == 70 || i == 72 || i == 73 ||
-    i == 75 || i == 76 || i == 78 || i == 79 || i == 143 || i == 144 || i == 146 || i == 147 ||
-    i == 149 || i == 150 || i == 152 || i == 153 || i == 155 || i == 156 || i == 158 || i == 159 ||
-    i == 223 || i == 224 || i == 226 || i == 227 || i == 229 || i == 230 ||i == 232 || i == 233 ||
-    i == 235 || i == 236 || i == 238 || i == 239 || i == 303 || i == 304 || i == 306 || i == 307 ||
-    i == 309 || i == 310 || i == 312 || i == 313 || i == 315 || i == 316 || i == 318 || i == 319)
+             i == 75 || i == 76 || i == 78 || i == 79 || i == 143 || i == 144 || i == 146 ||
+             i == 147 || i == 149 || i == 150 || i == 152 || i == 153 || i == 155 || i == 156 ||
+             i == 158 || i == 159 || i == 223 || i == 224 || i == 226 || i == 227 || i == 229 ||
+             i == 230 || i == 232 || i == 233 || i == 235 || i == 236 || i == 238 || i == 239 ||
+             i == 303 || i == 304 || i == 306 || i == 307 || i == 309 || i == 310 || i == 312 ||
+             i == 313 || i == 315 || i == 316 || i == 318 || i == 319)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CHAIR_TOP, new_location);
     }
-    else if ((i == 84 || i == 87  || i == 90 || i == 93 ||  i == 96  || i == 99 || i == 164 || i == 167
-    || i == 170 || i == 173 ||  i == 176  || i == 179 ||i == 244 || i == 247  || i == 250 || i == 253 ||
-    i == 256  || i == 259 || i == 324 || i == 327  || i == 330 || i == 333 ||  i == 336  || i == 339))
+    else if ((i == 84 || i == 87 || i == 90 || i == 93 || i == 96 || i == 99 || i == 164 ||
+              i == 167 || i == 170 || i == 173 || i == 176 || i == 179 || i == 244 || i == 247 ||
+              i == 250 || i == 253 || i == 256 || i == 259 || i == 324 || i == 327 || i == 330 ||
+              i == 333 || i == 336 || i == 339))
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CAFE_TABLE_RIGHT, new_location);
     }
-    else if ((i == 83 || i == 86 || i == 89 || i == 92 || i == 95 || i == 98 || i == 163 || i == 166 ||
-    i == 169 || i == 172 || i == 175 || i == 178 ||i == 243 || i == 246 || i == 249 || i == 252 ||
-    i == 255 || i == 258 || i == 323 || i == 326 || i == 329 || i == 332 || i == 335 || i == 338))
+    else if ((i == 83 || i == 86 || i == 89 || i == 92 || i == 95 || i == 98 || i == 163 ||
+              i == 166 || i == 169 || i == 172 || i == 175 || i == 178 || i == 243 || i == 246 ||
+              i == 249 || i == 252 || i == 255 || i == 258 || i == 323 || i == 326 || i == 329 ||
+              i == 332 || i == 335 || i == 338))
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CAFE_TABLE_LEFT, new_location);
     }
-    else if ((i == 103 || i == 104 || i == 106 || i == 107 || i == 109 || i == 110 || i == 112 || i == 113
-    || i == 115 || i == 116 || i == 118 || i == 119|| i == 183 || i == 184 || i == 186 || i == 187 ||
-    i == 189 || i == 190 || i == 192 || i == 193 || i == 195 || i == 196 || i == 198 || i == 199 ||
-    i == 263 || i == 264 || i == 266 || i == 267 || i == 269 || i == 270 || i == 272 || i == 273 ||
-    i == 275 || i == 276 || i == 278 || i == 279 || i == 343 || i == 344 || i == 346 || i == 347 ||
-    i == 349 || i == 350 ||i == 352 || i == 353 || i == 355 || i == 356 || i == 358 || i == 359))
+    else if ((i == 103 || i == 104 || i == 106 || i == 107 || i == 109 || i == 110 || i == 112 ||
+              i == 113 || i == 115 || i == 116 || i == 118 || i == 119 || i == 183 || i == 184 ||
+              i == 186 || i == 187 || i == 189 || i == 190 || i == 192 || i == 193 || i == 195 ||
+              i == 196 || i == 198 || i == 199 || i == 263 || i == 264 || i == 266 || i == 267 ||
+              i == 269 || i == 270 || i == 272 || i == 273 || i == 275 || i == 276 || i == 278 ||
+              i == 279 || i == 343 || i == 344 || i == 346 || i == 347 || i == 349 || i == 350 ||
+              i == 352 || i == 353 || i == 355 || i == 356 || i == 358 || i == 359))
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CHAIR_BOTTOM, new_location);
     }
-    else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2323,11 +2306,13 @@ void MyGame::setupRoomThree()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, ATRIUM, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * (new_grid_size_x / 2) + new_grid_size_x - 1].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2) + new_grid_size_x - 1]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 0, LOUNGE, 0, false);
   new_room.setMyExits(new_exits);
@@ -2335,11 +2320,11 @@ void MyGame::setupRoomThree()
 }
 
 /**
-*   @brief   Setup Room Four
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Four
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomFour()
 {
   Room new_room;
@@ -2358,21 +2343,21 @@ void MyGame::setupRoomFour()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 1|| i == 3 || i == 5 )
+    if (i == 1 || i == 3 || i == 5)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_TOP_LEFT, new_location);
     }
-    else if (i == 2|| i == 4 || i == 6 )
+    else if (i == 2 || i == 4 || i == 6)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2393,28 +2378,28 @@ void MyGame::setupRoomFour()
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_RIGHT, new_location);
     }
-    else if (i == 8|| i == 40 )
+    else if (i == 8 || i == 40)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_LEFT_TOP, new_location);
     }
-    else if (i == 16||  i == 48 )
+    else if (i == 16 || i == 48)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_LEFT_BOTTOM, new_location);
     }
-    else if (i == 15|| i == 47 )
+    else if (i == 15 || i == 47)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_RIGHT_TOP, new_location);
     }
-    else if (i == 23|| i == 55 )
+    else if (i == 23 || i == 55)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2426,10 +2411,10 @@ void MyGame::setupRoomFour()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2445,12 +2430,13 @@ void MyGame::setupRoomFour()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, CAFETERIA, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * (new_grid_size_x / 2) + new_grid_size_x - 1].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2) + new_grid_size_x - 1]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 0, DORMS, 0, false);
   new_room.setMyExits(new_exits);
@@ -2458,11 +2444,11 @@ void MyGame::setupRoomFour()
 }
 
 /**
-*   @brief   Setup Room Five
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Five
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomFive()
 {
   Room new_room;
@@ -2481,35 +2467,35 @@ void MyGame::setupRoomFive()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 1|| i == 3 || i == 5 )
+    if (i == 1 || i == 3 || i == 5)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(BED_LEFT, new_location);
     }
-    else if (i == 2|| i == 4 || i == 6 )
+    else if (i == 2 || i == 4 || i == 6)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(BED_RIGHT, new_location);
     }
-    else if (i == 15 || i == 31|| i == 47 )
+    else if (i == 15 || i == 31 || i == 47)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(BED_TOP, new_location);
     }
-    else if (i == 23 || i == 39|| i == 55 )
+    else if (i == 23 || i == 39 || i == 55)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2521,10 +2507,10 @@ void MyGame::setupRoomFive()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2540,12 +2526,13 @@ void MyGame::setupRoomFive()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_x / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, LOUNGE, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * new_grid_size_y - (new_grid_size_x / 2)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * new_grid_size_y - (new_grid_size_x / 2)]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(2, new_exit_location), 0, GARDEN, 0, false);
   new_room.setMyExits(new_exits);
@@ -2553,11 +2540,11 @@ void MyGame::setupRoomFive()
 }
 
 /**
-*   @brief   Setup Room Six
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Six
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomSix()
 {
   Room new_room;
@@ -2574,57 +2561,66 @@ void MyGame::setupRoomSix()
   new_room.setMyGridsizeY(new_grid_size_y);
   new_room.setupFloorStandard();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == new_grid_size_x * 3|| i == new_grid_size_x * 3  + 2|| i == new_grid_size_x * 3 + 5 ||
-    i == new_grid_size_x * 3  + 7 || i == new_grid_size_x * 13|| i == new_grid_size_x * 17  + 2||
-    i == new_grid_size_x * 17 + 5 || i == new_grid_size_x * 13  + 7 || i == new_grid_size_x * 9  + 2 ||
-    i == new_grid_size_x * 9 + 5 )
+    if (i == new_grid_size_x * 3 || i == new_grid_size_x * 3 + 2 || i == new_grid_size_x * 3 + 5 ||
+        i == new_grid_size_x * 3 + 7 || i == new_grid_size_x * 13 ||
+        i == new_grid_size_x * 17 + 2 || i == new_grid_size_x * 17 + 5 ||
+        i == new_grid_size_x * 13 + 7 || i == new_grid_size_x * 9 + 2 ||
+        i == new_grid_size_x * 9 + 5)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(FLOWER_TOP, new_location);
     }
-    else if (i == new_grid_size_x * 5|| i == new_grid_size_x * 5  + 2 || i == new_grid_size_x * 5 + 5 ||
-    i == new_grid_size_x * 5  + 7 || i == new_grid_size_x * 7 || i == new_grid_size_x * 7  + 7 || i ==
-    new_grid_size_x * 9 || i == new_grid_size_x * 9  + 7 || i == new_grid_size_x * 19|| i ==
-    new_grid_size_x * 19  + 2 || i == new_grid_size_x * 19 + 5 || i == new_grid_size_x * 19  + 7 ||
-    i == new_grid_size_x * 10  + 2 || i == new_grid_size_x * 10 + 5 || i == new_grid_size_x * 12  + 2
-    || i == new_grid_size_x * 12 + 5  || i == new_grid_size_x * 14  + 2 || i == new_grid_size_x * 14 +
-    5|| i == new_grid_size_x * 14   || i == new_grid_size_x * 14 + 7  || i == new_grid_size_x * 16
-    || i == new_grid_size_x * 16 + 7)
+    else if (i == new_grid_size_x * 5 || i == new_grid_size_x * 5 + 2 ||
+             i == new_grid_size_x * 5 + 5 || i == new_grid_size_x * 5 + 7 ||
+             i == new_grid_size_x * 7 || i == new_grid_size_x * 7 + 7 || i == new_grid_size_x * 9 ||
+             i == new_grid_size_x * 9 + 7 || i == new_grid_size_x * 19 ||
+             i == new_grid_size_x * 19 + 2 || i == new_grid_size_x * 19 + 5 ||
+             i == new_grid_size_x * 19 + 7 || i == new_grid_size_x * 10 + 2 ||
+             i == new_grid_size_x * 10 + 5 || i == new_grid_size_x * 12 + 2 ||
+             i == new_grid_size_x * 12 + 5 || i == new_grid_size_x * 14 + 2 ||
+             i == new_grid_size_x * 14 + 5 || i == new_grid_size_x * 14 ||
+             i == new_grid_size_x * 14 + 7 || i == new_grid_size_x * 16 ||
+             i == new_grid_size_x * 16 + 7)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(FLOWER_MID_ONE, new_location);
     }
-    else if (i == new_grid_size_x * 4 || i == new_grid_size_x * 4  + 2 || i == new_grid_size_x * 6
-    || i == new_grid_size_x * 6  + 2 || i == new_grid_size_x * 4 + 5 || i == new_grid_size_x * 4  + 7
-    || i == new_grid_size_x * 6 + 5 || i == new_grid_size_x * 6  + 7 || i == new_grid_size_x * 8 ||
-    i == new_grid_size_x * 8  + 7 || i == new_grid_size_x * 10 || i == new_grid_size_x * 10  + 7 ||
-    i == new_grid_size_x * 18 || i == new_grid_size_x * 18 + 2 || i == new_grid_size_x * 20 || i ==
-    new_grid_size_x * 20  + 2 ||i == new_grid_size_x * 18 + 5 || i == new_grid_size_x * 18  + 7 ||i
-    == new_grid_size_x * 20 + 5 || i == new_grid_size_x * 20  + 7 || i == new_grid_size_x * 11  + 2
-    || i == new_grid_size_x * 11 + 5 || i == new_grid_size_x * 13  + 2 || i == new_grid_size_x * 13 + 5
-    || i == new_grid_size_x * 15   || i == new_grid_size_x * 15 + 7  || i == new_grid_size_x * 17
-    || i == new_grid_size_x * 17 + 7)
+    else if (i == new_grid_size_x * 4 || i == new_grid_size_x * 4 + 2 || i == new_grid_size_x * 6 ||
+             i == new_grid_size_x * 6 + 2 || i == new_grid_size_x * 4 + 5 ||
+             i == new_grid_size_x * 4 + 7 || i == new_grid_size_x * 6 + 5 ||
+             i == new_grid_size_x * 6 + 7 || i == new_grid_size_x * 8 ||
+             i == new_grid_size_x * 8 + 7 || i == new_grid_size_x * 10 ||
+             i == new_grid_size_x * 10 + 7 || i == new_grid_size_x * 18 ||
+             i == new_grid_size_x * 18 + 2 || i == new_grid_size_x * 20 ||
+             i == new_grid_size_x * 20 + 2 || i == new_grid_size_x * 18 + 5 ||
+             i == new_grid_size_x * 18 + 7 || i == new_grid_size_x * 20 + 5 ||
+             i == new_grid_size_x * 20 + 7 || i == new_grid_size_x * 11 + 2 ||
+             i == new_grid_size_x * 11 + 5 || i == new_grid_size_x * 13 + 2 ||
+             i == new_grid_size_x * 13 + 5 || i == new_grid_size_x * 15 ||
+             i == new_grid_size_x * 15 + 7 || i == new_grid_size_x * 17 ||
+             i == new_grid_size_x * 17 + 7)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(FLOWER_MID_TWO, new_location);
     }
-    else if (i == new_grid_size_x * 11 || i == new_grid_size_x * 7  + 2 || i == new_grid_size_x * 7 + 5
-    || i == new_grid_size_x * 11  + 7 || i == new_grid_size_x * 21 || i == new_grid_size_x * 21  + 2 ||
-    i == new_grid_size_x * 21 + 5 || i == new_grid_size_x * 21  + 7|| i == new_grid_size_x * 15  + 2 ||
-    i == new_grid_size_x * 15 + 5  )
+    else if (i == new_grid_size_x * 11 || i == new_grid_size_x * 7 + 2 ||
+             i == new_grid_size_x * 7 + 5 || i == new_grid_size_x * 11 + 7 ||
+             i == new_grid_size_x * 21 || i == new_grid_size_x * 21 + 2 ||
+             i == new_grid_size_x * 21 + 5 || i == new_grid_size_x * 21 + 7 ||
+             i == new_grid_size_x * 15 + 2 || i == new_grid_size_x * 15 + 5)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2638,20 +2634,22 @@ void MyGame::setupRoomSix()
       new_location.y = top_side;
       new_foreground[i] = GameObject(LAB_COAT, new_location);
     }
-    else if ((i >= 0 && i < 3) || (i >= 5 && i < 8)
-        || i == 113)
+    else if ((i >= 0 && i < 3) || (i >= 5 && i < 8) || i == 113)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(VENDING_MACHINE, new_location);
     }
-    else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2677,14 +2675,14 @@ void MyGame::setupRoomSix()
 
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(1);
-    new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
+  new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D* new_tar_mov_locs = nullptr;
-    new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
+  new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
   Point2D new_movable_location = new_room.getMyBackground()[97].getMyLocation();
   Point2D new_target_location = new_room.getMyBackground()[105].getMyLocation();
-    new_mov_objects[0] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[0].x = new_target_location.x;
-    new_tar_mov_locs[0].y = new_target_location.y;
+  new_mov_objects[0] = GameObject(0, new_movable_location);
+  new_tar_mov_locs[0].x = new_target_location.x;
+  new_tar_mov_locs[0].y = new_target_location.y;
   new_puzzle.setMyMovables(new_mov_objects);
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
@@ -2699,7 +2697,8 @@ void MyGame::setupRoomSix()
   Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x / 2)].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, DORMS, 1, false);
-  new_exit_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, GYM, 0, true);
   new_room.setMyExits(new_exits);
@@ -2707,11 +2706,11 @@ void MyGame::setupRoomSix()
 }
 
 /**
-*   @brief   Setup Room Seven
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Seven
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomSeven()
 {
   Room new_room;
@@ -2730,35 +2729,35 @@ void MyGame::setupRoomSeven()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i >= 3  && i <= 6 )
+    if (i >= 3 && i <= 6)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(TREADMILL_TOP, new_location);
     }
-    else if (i >= new_grid_size_x + 3  && i <= new_grid_size_x + 6 )
+    else if (i >= new_grid_size_x + 3 && i <= new_grid_size_x + 6)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(TREADMILL_BOTTOM, new_location);
     }
-    else if (i == 0  || i == 9 )
+    else if (i == 0 || i == 9)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(WEIGHTBENCH_TOP, new_location);
     }
-    else if (i == new_grid_size_x  || i == new_grid_size_x + 9 )
+    else if (i == new_grid_size_x || i == new_grid_size_x + 9)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2770,9 +2769,10 @@ void MyGame::setupRoomSeven()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2795,15 +2795,18 @@ void MyGame::setupRoomSeven()
 
   new_room.setNumberExits(3);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x*(new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, GARDEN, 1, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(new_grid_size_y / 2) )].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, LOCKERS, 0, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 )]
-          .getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y) - (new_grid_size_x / 2)]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[2] = Exit(GameObject(2, new_exit_location), 2, CORRIDOR, 0, false);
   new_room.setMyExits(new_exits);
@@ -2811,11 +2814,11 @@ void MyGame::setupRoomSeven()
 }
 
 /**
-*   @brief   Setup Room Eight
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Eight
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomEight()
 {
   Room new_room;
@@ -2834,22 +2837,21 @@ void MyGame::setupRoomEight()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i >= 0  && i < new_grid_size_x )
+    if (i >= 0 && i < new_grid_size_x)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(LOCKER_TOP, new_location);
     }
-    else if (i >= new_grid_size_x * (new_grid_size_y - 1) &&
-             i < new_grid_size_x * new_grid_size_y)
+    else if (i >= new_grid_size_x * (new_grid_size_y - 1) && i < new_grid_size_x * new_grid_size_y)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2861,10 +2863,10 @@ void MyGame::setupRoomEight()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2872,7 +2874,8 @@ void MyGame::setupRoomEight()
 
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
-  GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 1) + 3];
+  GameObject new_gameobject =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 1) + 3];
   new_gameobject.setMySpriteId(1);
   new_clues[0] = Clue(new_gameobject, 3);
   new_room.setMyClues(new_clues);
@@ -2881,11 +2884,13 @@ void MyGame::setupRoomEight()
   new_room.setMyPuzzle(new_puzzle);
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x*(new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, GYM, 1, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x*(new_grid_size_y / 2) )].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, TOILETS_M, 0, false);
   new_room.setMyExits(new_exits);
@@ -2893,11 +2898,11 @@ void MyGame::setupRoomEight()
 }
 
 /**
-*   @brief   Setup Room Nine
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Nine
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomNine()
 {
   Room new_room;
@@ -2916,21 +2921,21 @@ void MyGame::setupRoomNine()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i >= 2  && i < new_grid_size_x - 2 )
+    if (i >= 2 && i < new_grid_size_x - 2)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SHOWER, new_location);
     }
-    else if (i % new_grid_size_x == 0 && (i != new_grid_size_x  || i != 0))
+    else if (i % new_grid_size_x == 0 && (i != new_grid_size_x || i != 0))
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -2949,10 +2954,10 @@ void MyGame::setupRoomNine()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -2973,12 +2978,14 @@ void MyGame::setupRoomNine()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x*(new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, LOCKERS, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 ) - 1].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y) - (new_grid_size_x / 2) - 1]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(2, new_exit_location), 1, LIBRARY, 0, false);
   new_room.setMyExits(new_exits);
@@ -2986,12 +2993,13 @@ void MyGame::setupRoomNine()
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
-void MyGame::setupRoomTen() {
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
+void MyGame::setupRoomTen()
+{
   Room new_room;
   GameObject* new_foreground = nullptr;
   Clue* new_clues = nullptr;
@@ -3008,21 +3016,21 @@ void MyGame::setupRoomTen() {
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i >= 2  && i < new_grid_size_x - 2 )
+    if (i >= 2 && i < new_grid_size_x - 2)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SHOWER, new_location);
     }
-    else if (i % new_grid_size_x == 0 && (i != new_grid_size_x  || i != 0))
+    else if (i % new_grid_size_x == 0 && (i != new_grid_size_x || i != 0))
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3041,10 +3049,10 @@ void MyGame::setupRoomTen() {
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3069,8 +3077,9 @@ void MyGame::setupRoomTen() {
 
   new_room.setNumberExits(1);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x*new_grid_size_y) - (new_grid_size_x / 2 ) - 1].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y) - (new_grid_size_x / 2) - 1]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(2, new_exit_location), 0, WASTE_DISPOSAL, 0, false);
   new_room.setMyExits(new_exits);
@@ -3078,11 +3087,11 @@ void MyGame::setupRoomTen() {
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomEleven()
 {
   Room new_room;
@@ -3101,30 +3110,30 @@ void MyGame::setupRoomEleven()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if ((i >= 10  && i <15) || (i >= 16  && i <20) || (i >= 32  && i <38)||
-        (i >= 40  && i <48)|| (i >= 70  && i <78))
+    if ((i >= 10 && i < 15) || (i >= 16 && i < 20) || (i >= 32 && i < 38) || (i >= 40 && i < 48) ||
+        (i >= 70 && i < 78))
     {
-        Point2D new_location;
-        new_location.x = left_side;
-        new_location.y = top_side;
-        new_foreground[i] = GameObject(WASTE_BARREL, new_location);
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(WASTE_BARREL, new_location);
     }
     else
     {
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3146,14 +3155,14 @@ void MyGame::setupRoomEleven()
   bool* new_tar_sw_states = nullptr;
   new_puzzle.setNumberSwitches(1);
   new_switches = new Switch[new_puzzle.getNumberSwitches()];
-    new_tar_sw_states = new bool[new_puzzle.getNumberSwitches()];
+  new_tar_sw_states = new bool[new_puzzle.getNumberSwitches()];
   for (int i = 0; i < new_puzzle.getNumberSwitches(); i++)
   {
     if (i == 0)
     {
       Point2D new_location = new_room.getMyBackground()[30].getMyLocation();
       new_switches[i] = Switch(GameObject(0, new_location), GameObject(0, new_location), false);
-        new_tar_sw_states[i] = true;
+      new_tar_sw_states[i] = true;
     }
   }
   new_puzzle.setMySwitches(new_switches);
@@ -3161,25 +3170,25 @@ void MyGame::setupRoomEleven()
 
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(1);
-    new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
+  new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D* new_tar_mov_locs = nullptr;
-    new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
+  new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
   for (int i = 0; i < new_puzzle.getNumberMovables(); i++)
   {
     if (i == 0)
     {
       Point2D new_location = new_room.getMyBackground()[24].getMyLocation();
       Point2D new_target_location = new_room.getMyBackground()[20].getMyLocation();
-        new_mov_objects[i] = GameObject(0, new_location);
-        new_tar_mov_locs[i].x = new_target_location.x;
-        new_tar_mov_locs[i].y = new_target_location.y;
+      new_mov_objects[i] = GameObject(0, new_location);
+      new_tar_mov_locs[i].x = new_target_location.x;
+      new_tar_mov_locs[i].y = new_target_location.y;
     }
   }
   new_puzzle.setMyMovables(new_mov_objects);
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
   std::string new_solved_mssge = "You escape through the waste "
-                                          "disposal chute!";
+                                 "disposal chute!";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(3);
@@ -3190,16 +3199,15 @@ void MyGame::setupRoomEleven()
 
   new_room.setNumberExits(3);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x / 2)].getMyLocation();
+  Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x / 2)].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, TOILETS_F, 0, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2) - 1)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) - 1)].getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 1, LIBRARY, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[2] = Exit(GameObject(3, new_exit_location), 2, EXIT, 1, true);
   new_room.setMyExits(new_exits);
@@ -3207,11 +3215,11 @@ void MyGame::setupRoomEleven()
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwelve()
 {
   Room new_room;
@@ -3230,30 +3238,29 @@ void MyGame::setupRoomTwelve()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 0  || i == 2  || i == 6 || i == 8 || i == 80
-    || i == 82  || i == 84 || i == 86 || i == 88 )
+    if (i == 0 || i == 2 || i == 6 || i == 8 || i == 80 || i == 82 || i == 84 || i == 86 || i == 88)
     {
-        Point2D new_location;
-        new_location.x = left_side;
-        new_location.y = top_side;
-        new_foreground[i] = GameObject(BOOKSHELF_LEFT, new_location);
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(BOOKSHELF_LEFT, new_location);
     }
-    else if (i == 1  || i == 3 || i == 7 || i == 9 || i == 81
-    || i == 83  || i == 85 || i == 87 || i == 89 )
+    else if (i == 1 || i == 3 || i == 7 || i == 9 || i == 81 || i == 83 || i == 85 || i == 87 ||
+             i == 89)
     {
-        Point2D new_location;
-        new_location.x = left_side;
-        new_location.y = top_side;
-        new_foreground[i] = GameObject(BOOKSHELF_RIGHT, new_location);
+      Point2D new_location;
+      new_location.x = left_side;
+      new_location.y = top_side;
+      new_foreground[i] = GameObject(BOOKSHELF_RIGHT, new_location);
     }
-    else if (i == 33  || i == 35)
+    else if (i == 33 || i == 35)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3267,7 +3274,7 @@ void MyGame::setupRoomTwelve()
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_LEFT, new_location);
     }
-    else if (i == 44  || i == 45)
+    else if (i == 44 || i == 45)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3281,7 +3288,7 @@ void MyGame::setupRoomTwelve()
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_RIGHT, new_location);
     }
-    else if (i == 54  || i == 56)
+    else if (i == 54 || i == 56)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3293,10 +3300,10 @@ void MyGame::setupRoomTwelve()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3331,7 +3338,7 @@ void MyGame::setupRoomTwelve()
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
   std::string new_solved_mssge = "You open the door"
-                                          " using the green keycard";
+                                 " using the green keycard";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(6);
@@ -3342,16 +3349,16 @@ void MyGame::setupRoomTwelve()
 
   new_room.setNumberExits(3);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x / 2)].getMyLocation();
+  Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x / 2)].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, TOILETS_M, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, WASTE_DISPOSAL, 1, true);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[2] = Exit(GameObject(1, new_exit_location), 2, SUPPLY_ROOM, 0, false);
   new_room.setMyExits(new_exits);
@@ -3359,11 +3366,11 @@ void MyGame::setupRoomTwelve()
 }
 
 /**
-*   @brief   Setup Room Thirteen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Thirteen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomThirteen()
 {
   Room new_room;
@@ -3382,17 +3389,17 @@ void MyGame::setupRoomThirteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if ((i >= 13  && i < 23 ) || (i >= 72  && i < 80 ) || i == 50 || i == 38 || i == 25 || i == 37 ||
-    (i >= 40  && i < 44 ) || i == 34 ||i == 81|| (i >= 55  && i < 60 )|| i == 62  || i == 52 || i == 69||
-    i == 106|| (i >= 93 && i < 95 )|| (i >= 109  && i < 119 ) || i == 87|| i == 97|| i == 91 || i == 101||
-    i == 105)
+    if ((i >= 13 && i < 23) || (i >= 72 && i < 80) || i == 50 || i == 38 || i == 25 || i == 37 ||
+        (i >= 40 && i < 44) || i == 34 || i == 81 || (i >= 55 && i < 60) || i == 62 || i == 52 ||
+        i == 69 || i == 106 || (i >= 93 && i < 95) || (i >= 109 && i < 119) || i == 87 || i == 97 ||
+        i == 91 || i == 101 || i == 105)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3404,10 +3411,10 @@ void MyGame::setupRoomThirteen()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3431,18 +3438,18 @@ void MyGame::setupRoomThirteen()
 
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(1);
-    new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
+  new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D* new_tar_mov_locs = nullptr;
-    new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
+  new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
   for (int i = 0; i < new_puzzle.getNumberMovables(); i++)
   {
     if (i == 0)
     {
       Point2D new_location = new_room.getMyBackground()[29].getMyLocation();
       Point2D new_target_location = new_room.getMyBackground()[25].getMyLocation();
-        new_mov_objects[i] = GameObject(0, new_location);
-        new_tar_mov_locs[i].x = new_target_location.x;
-        new_tar_mov_locs[i].y = new_target_location.y;
+      new_mov_objects[i] = GameObject(0, new_location);
+      new_tar_mov_locs[i].x = new_target_location.x;
+      new_tar_mov_locs[i].y = new_target_location.y;
     }
   }
   new_puzzle.setMyMovables(new_mov_objects);
@@ -3459,12 +3466,13 @@ void MyGame::setupRoomThirteen()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, LIBRARY, 2, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 1, CORRIDOR, 1, false);
   new_room.setMyExits(new_exits);
@@ -3472,11 +3480,11 @@ void MyGame::setupRoomThirteen()
 }
 
 /**
-*   @brief   Setup Room Fourteen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Fourteen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomFourteen()
 {
   Room new_room;
@@ -3495,19 +3503,19 @@ void MyGame::setupRoomFourteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float> (new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-      new_foreground[i].setMySpriteId(-1);
+    new_foreground[i].setMySpriteId(-1);
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3539,7 +3547,7 @@ void MyGame::setupRoomFourteen()
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
   std::string new_solved_mssge = "You open the door"
-                                          " using the yellow keycard";
+                                 " using the yellow keycard";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(5);
@@ -3549,26 +3557,32 @@ void MyGame::setupRoomFourteen()
 
   new_room.setNumberExits(6);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x  / 2)].getMyLocation();
+  Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x / 2)].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, GYM, 2, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 4))].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 4))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, SUPPLY_ROOM, 1, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + (new_grid_size_x * 2) )].
-          getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + (new_grid_size_x * 2))]
+      .getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[2] = Exit(GameObject(3, new_exit_location), 2, OBSERVATION, 0, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 4) + new_grid_size_x - 1)].
-          getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 4) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[3] = Exit(GameObject(1, new_exit_location), 3, LAB_ONE, 0, true);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + (new_grid_size_x * 3)
-                                                 - 1)].getMyLocation();
+  new_exit_location =
+    new_room
+      .getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + (new_grid_size_x * 3) - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[4] = Exit(GameObject(1, new_exit_location), 4, LAB_TWO, 0, true);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y) - (new_grid_size_x / 2)].
-          getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y) - (new_grid_size_x / 2)]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[5] = Exit(GameObject(2, new_exit_location), 5, LEAD_TECH_OFFICE, 0, false);
   new_room.setMyExits(new_exits);
@@ -3576,11 +3590,11 @@ void MyGame::setupRoomFourteen()
 }
 
 /**
-*   @brief   Setup Room Fifteen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Fifteen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomFifteen()
 {
   Room new_room;
@@ -3600,66 +3614,64 @@ void MyGame::setupRoomFifteen()
   new_room.setupWalls();
 
   new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 0|| i == 6 || i == 12)
+    if (i == 0 || i == 6 || i == 12)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_TOP_LEFT, new_location);
     }
-    else if (i == 1|| i == 7|| i == 13)
+    else if (i == 1 || i == 7 || i == 13)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_TOP_RIGHT, new_location);
     }
-    else if (i == 2|| i == 8|| i == 14)
+    else if (i == 2 || i == 8 || i == 14)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_TERMINAL, new_location);
     }
-    else if (i == 3|| i == 9|| i == 15)
+    else if (i == 3 || i == 9 || i == 15)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SURGEONS_TOOLS, new_location);
     }
-    else if (i == new_grid_size_x|| i == new_grid_size_x + 6||
-             i == new_grid_size_x + 12)
+    else if (i == new_grid_size_x || i == new_grid_size_x + 6 || i == new_grid_size_x + 12)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_BOTTOM_LEFT, new_location);
     }
-    else if (i == new_grid_size_x + 1|| i == new_grid_size_x + 7||
-             i == new_grid_size_x + 13)
+    else if (i == new_grid_size_x + 1 || i == new_grid_size_x + 7 || i == new_grid_size_x + 13)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_BOTTOM_RIGHT, new_location);
     }
-    else if (i == new_grid_size_x * 6 + 2 || i == new_grid_size_x * 6  + 7 ||
-             i == new_grid_size_x * 6  + 12)
+    else if (i == new_grid_size_x * 6 + 2 || i == new_grid_size_x * 6 + 7 ||
+             i == new_grid_size_x * 6 + 12)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(POOL_TOP_LEFT, new_location);
     }
-    else if (i == new_grid_size_x  * 6 + 3 || i == new_grid_size_x * 6  + 8 ||
-             i == new_grid_size_x  * 6 + 13)
+    else if (i == new_grid_size_x * 6 + 3 || i == new_grid_size_x * 6 + 8 ||
+             i == new_grid_size_x * 6 + 13)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3674,8 +3686,8 @@ void MyGame::setupRoomFifteen()
       new_location.y = top_side;
       new_foreground[i] = GameObject(POOL_BOTTOM_LEFT, new_location);
     }
-    else if (i == new_grid_size_x * 7  + 3 || i == new_grid_size_x * 7 + 8 ||
-             i == new_grid_size_x  * 7 + 13)
+    else if (i == new_grid_size_x * 7 + 3 || i == new_grid_size_x * 7 + 8 ||
+             i == new_grid_size_x * 7 + 13)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3687,10 +3699,10 @@ void MyGame::setupRoomFifteen()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3710,8 +3722,8 @@ void MyGame::setupRoomFifteen()
 
   new_room.setNumberExits(1);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x *(new_grid_size_y / 2))].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, CORRIDOR, 3, false);
   new_room.setMyExits(new_exits);
@@ -3719,11 +3731,11 @@ void MyGame::setupRoomFifteen()
 }
 
 /**
-*   @brief   Setup Room One
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room One
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomSixteen()
 {
   Room new_room;
@@ -3742,63 +3754,80 @@ void MyGame::setupRoomSixteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 0|| i == 6 || i == 12)    {
+    if (i == 0 || i == 6 || i == 12)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_TOP_LEFT, new_location);
-    } else if (i == 1|| i == 7|| i == 13) {
+    }
+    else if (i == 1 || i == 7 || i == 13)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_TOP_CENTRE, new_location);
-    } else if (i == 2|| i == 8|| i == 14) {
+    }
+    else if (i == 2 || i == 8 || i == 14)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_TOP_RIGHT, new_location);
-    } else if (i == 3|| i == 9|| i == 15) {
+    }
+    else if (i == 3 || i == 9 || i == 15)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SYNTH_BRAIN, new_location);
-    } else if (i == new_grid_size_x|| i == new_grid_size_x + 6||
-             i == new_grid_size_x + 12) {
+    }
+    else if (i == new_grid_size_x || i == new_grid_size_x + 6 || i == new_grid_size_x + 12)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_LEFT_MIDDLE, new_location);
-    } else if (i == new_grid_size_x + 2|| i == new_grid_size_x + 8||
-             i == new_grid_size_x + 14) {
+    }
+    else if (i == new_grid_size_x + 2 || i == new_grid_size_x + 8 || i == new_grid_size_x + 14)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_RIGHT_MIDDLE, new_location);
-    } else if (i == new_grid_size_x * 2 || i == new_grid_size_x * 2 + 6||
-             i == new_grid_size_x * 2 + 12) {
+    }
+    else if (i == new_grid_size_x * 2 || i == new_grid_size_x * 2 + 6 ||
+             i == new_grid_size_x * 2 + 12)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_LEFT_BOTTOM, new_location);
-    } else if (i == new_grid_size_x * 2 + 2|| i == new_grid_size_x * 2 + 8||
-             i == new_grid_size_x * 2 + 14) {
+    }
+    else if (i == new_grid_size_x * 2 + 2 || i == new_grid_size_x * 2 + 8 ||
+             i == new_grid_size_x * 2 + 14)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_RIGHT_BOTTOM, new_location);
-    } else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    }
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3823,8 +3852,8 @@ void MyGame::setupRoomSixteen()
 
   new_room.setNumberExits(1);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x *(new_grid_size_y / 2))].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, CORRIDOR, 4, false);
   new_room.setMyExits(new_exits);
@@ -3832,11 +3861,11 @@ void MyGame::setupRoomSixteen()
 }
 
 /**
-*   @brief   Setup Room Seventeen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Seventeen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomSeventeen()
 {
   Room new_room;
@@ -3855,56 +3884,56 @@ void MyGame::setupRoomSeventeen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i ==  24 )
+    if (i == 24)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_LEFT, new_location);
     }
-    else if (i ==  25 )
+    else if (i == 25)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_RIGHT, new_location);
     }
-    else if (i ==  34 )
+    else if (i == 34)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_CHAIR_BOTTOM, new_location);
     }
-    else if (i >=  0 && i < new_grid_size_x)
+    else if (i >= 0 && i < new_grid_size_x)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(COMPUTERS_TOP_CENTRE, new_location);
     }
-    else if (i ==  67 )
+    else if (i == 67)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CAFE_TABLE_LEFT, new_location);
     }
-    else if (i ==  68 )
+    else if (i == 68)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CAFE_TABLE_RIGHT, new_location);
     }
-    else if (i ==  57 )
+    else if (i == 57)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -3916,10 +3945,10 @@ void MyGame::setupRoomSeventeen()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -3935,12 +3964,13 @@ void MyGame::setupRoomSeventeen()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x   *(new_grid_size_y / 2)+ new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, CORRIDOR, 2, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x   *
-                                                 (new_grid_size_y / 2) )].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, TESTING, 0, false);
   new_room.setMyExits(new_exits);
@@ -3948,11 +3978,11 @@ void MyGame::setupRoomSeventeen()
 }
 
 /**
-*   @brief   Setup Room Eighteen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Eighteen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomEighteen()
 {
   Room new_room;
@@ -3971,49 +4001,65 @@ void MyGame::setupRoomEighteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if ((i >= new_grid_size_x + 1 && i < new_grid_size_x  + 8) || (i >= new_grid_size_x + 9 && i <
-    new_grid_size_x  * 2) || (i >= new_grid_size_x * 3 + 1 && i < new_grid_size_x * 3  + 19) ||
-    (i >= new_grid_size_x * 5 && i < new_grid_size_x * 5  + 7) || (i >= new_grid_size_x * 5 + 8 && i
-    < new_grid_size_x * 5  + 9) || (i >= new_grid_size_x * 5 + 10 && i < new_grid_size_x * 5
-    + 20) || (i >= new_grid_size_x * 7 && i < new_grid_size_x * 7 + 3) || (i >= new_grid_size_x
-    * 7 + 4 && i < new_grid_size_x * 7  + 12) ||(i >= new_grid_size_x * 7 + 13 && i <
-    new_grid_size_x * 7  + 17) || (i >= new_grid_size_x * 7 + 18 && i < new_grid_size_x * 7
-    + 20) || (i >= new_grid_size_x * 9 && i < new_grid_size_x * 9  + 2) || (i >= new_grid_size_x
-    * 9 + 4 && i < new_grid_size_x * 9 + 9) ||(i >= new_grid_size_x * 9 + 11 && i < new_grid_size_x
-    * 9  + 15) || (i >= new_grid_size_x * 9 + 16 && i < new_grid_size_x * 9  + 20) || (i >= new_grid_size_x
-    * 11 && i < new_grid_size_x * 11  + 6) || (i >= new_grid_size_x * 11 + 7 && i < new_grid_size_x
-    * 11  + 17) || (i >= new_grid_size_x * 11 + 18 && i < new_grid_size_x * 11  + 20) || (i >=
-    new_grid_size_x * 13  && i < new_grid_size_x * 13  + 12) || (i >= new_grid_size_x * 13 + 13 && i <
-    new_grid_size_x * 13  + 16) || (i >= new_grid_size_x * 13 + 17 && i < new_grid_size_x * 13
-    + 20) || (i >= new_grid_size_x * 15  && i < new_grid_size_x * 15 + 6) || (i >= new_grid_size_x
-    * 15 + 7 && i < new_grid_size_x * 15  + 10) || (i >= new_grid_size_x * 15 + 11 && i < new_grid_size_x
-    * 15  + 19) || (i >= new_grid_size_x * 16  && i < new_grid_size_x * 16  + 6) || (i >= new_grid_size_x
-    * 16 + 7 && i < new_grid_size_x * 16  + 10) ||(i >= new_grid_size_x * 17 + 7 && i < new_grid_size_x
-    * 17  + 10) || (i >= new_grid_size_x * 16 + 11 && i < new_grid_size_x * 16  + 13) || (i >=
-    new_grid_size_x * 18 + 1 && i < new_grid_size_x * 18 + 16)  || (i >= new_grid_size_x * 18 + 17 && i
-    < new_grid_size_x * 18  + 20) || i == new_grid_size_x * 2 + 1 ||  i == new_grid_size_x * 4
-    + 8 || i == new_grid_size_x * 6 + 2 ||  i == new_grid_size_x * 6 + 8 || i == new_grid_size_x
-    * 8 + 2 ||  i == new_grid_size_x * 8 + 11 || i == new_grid_size_x * 10 + 5 ||  i == new_grid_size_x
-    * 10 + 16 || i == new_grid_size_x * 12 + 4 || i == new_grid_size_x * 12 + 15|| i == new_grid_size_x
-    * 14 + 5 ||  i == new_grid_size_x * 14 + 15)
+    if ((i >= new_grid_size_x + 1 && i < new_grid_size_x + 8) ||
+        (i >= new_grid_size_x + 9 && i < new_grid_size_x * 2) ||
+        (i >= new_grid_size_x * 3 + 1 && i < new_grid_size_x * 3 + 19) ||
+        (i >= new_grid_size_x * 5 && i < new_grid_size_x * 5 + 7) ||
+        (i >= new_grid_size_x * 5 + 8 && i < new_grid_size_x * 5 + 9) ||
+        (i >= new_grid_size_x * 5 + 10 && i < new_grid_size_x * 5 + 20) ||
+        (i >= new_grid_size_x * 7 && i < new_grid_size_x * 7 + 3) ||
+        (i >= new_grid_size_x * 7 + 4 && i < new_grid_size_x * 7 + 12) ||
+        (i >= new_grid_size_x * 7 + 13 && i < new_grid_size_x * 7 + 17) ||
+        (i >= new_grid_size_x * 7 + 18 && i < new_grid_size_x * 7 + 20) ||
+        (i >= new_grid_size_x * 9 && i < new_grid_size_x * 9 + 2) ||
+        (i >= new_grid_size_x * 9 + 4 && i < new_grid_size_x * 9 + 9) ||
+        (i >= new_grid_size_x * 9 + 11 && i < new_grid_size_x * 9 + 15) ||
+        (i >= new_grid_size_x * 9 + 16 && i < new_grid_size_x * 9 + 20) ||
+        (i >= new_grid_size_x * 11 && i < new_grid_size_x * 11 + 6) ||
+        (i >= new_grid_size_x * 11 + 7 && i < new_grid_size_x * 11 + 17) ||
+        (i >= new_grid_size_x * 11 + 18 && i < new_grid_size_x * 11 + 20) ||
+        (i >= new_grid_size_x * 13 && i < new_grid_size_x * 13 + 12) ||
+        (i >= new_grid_size_x * 13 + 13 && i < new_grid_size_x * 13 + 16) ||
+        (i >= new_grid_size_x * 13 + 17 && i < new_grid_size_x * 13 + 20) ||
+        (i >= new_grid_size_x * 15 && i < new_grid_size_x * 15 + 6) ||
+        (i >= new_grid_size_x * 15 + 7 && i < new_grid_size_x * 15 + 10) ||
+        (i >= new_grid_size_x * 15 + 11 && i < new_grid_size_x * 15 + 19) ||
+        (i >= new_grid_size_x * 16 && i < new_grid_size_x * 16 + 6) ||
+        (i >= new_grid_size_x * 16 + 7 && i < new_grid_size_x * 16 + 10) ||
+        (i >= new_grid_size_x * 17 + 7 && i < new_grid_size_x * 17 + 10) ||
+        (i >= new_grid_size_x * 16 + 11 && i < new_grid_size_x * 16 + 13) ||
+        (i >= new_grid_size_x * 18 + 1 && i < new_grid_size_x * 18 + 16) ||
+        (i >= new_grid_size_x * 18 + 17 && i < new_grid_size_x * 18 + 20) ||
+        i == new_grid_size_x * 2 + 1 || i == new_grid_size_x * 4 + 8 ||
+        i == new_grid_size_x * 6 + 2 || i == new_grid_size_x * 6 + 8 ||
+        i == new_grid_size_x * 8 + 2 || i == new_grid_size_x * 8 + 11 ||
+        i == new_grid_size_x * 10 + 5 || i == new_grid_size_x * 10 + 16 ||
+        i == new_grid_size_x * 12 + 4 || i == new_grid_size_x * 12 + 15 ||
+        i == new_grid_size_x * 14 + 5 || i == new_grid_size_x * 14 + 15)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(WASTE_BARREL_TWO, new_location);
     }
-    else    {      new_foreground[i].setMySpriteId(-1);    }
+    else
+    {
+      new_foreground[i].setMySpriteId(-1);
+    }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)    {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)* 0.5f)));
-      top_side += GRID_SIZE;    }
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+      top_side += GRID_SIZE;
+    }
   }
   new_room.setMyForeground(new_foreground);
   new_room.setNumberClues(0);
@@ -4023,42 +4069,43 @@ void MyGame::setupRoomEighteen()
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(5);
   Point2D* new_tar_mov_locs = nullptr;
-    new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
+  new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
   new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D new_movable_location = new_room.getMyBackground()[168].getMyLocation();
   Point2D new_target_location = new_room.getMyBackground()[105].getMyLocation();
   new_mov_objects[0] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[0].x = new_target_location.x;
-    new_tar_mov_locs[0].y = new_target_location.y;
+  new_tar_mov_locs[0].x = new_target_location.x;
+  new_tar_mov_locs[0].y = new_target_location.y;
   new_movable_location = new_room.getMyBackground()[310].getMyLocation();
   new_mov_objects[1] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[1].x = new_target_location.x;
-    new_tar_mov_locs[1].y = new_target_location.y;
+  new_tar_mov_locs[1].x = new_target_location.x;
+  new_tar_mov_locs[1].y = new_target_location.y;
   new_movable_location = new_room.getMyBackground()[319].getMyLocation();
   new_mov_objects[2] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[2].x = new_target_location.x;
-    new_tar_mov_locs[2].y = new_target_location.y;
+  new_tar_mov_locs[2].x = new_target_location.x;
+  new_tar_mov_locs[2].y = new_target_location.y;
   new_movable_location = new_room.getMyBackground()[338].getMyLocation();
   new_mov_objects[3] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[3].x = new_target_location.x;
-    new_tar_mov_locs[3].y = new_target_location.y;
+  new_tar_mov_locs[3].x = new_target_location.x;
+  new_tar_mov_locs[3].y = new_target_location.y;
   new_movable_location = new_room.getMyBackground()[157].getMyLocation();
   new_mov_objects[4] = GameObject(0, new_movable_location);
-    new_tar_mov_locs[4].x = new_target_location.x;
-    new_tar_mov_locs[4].y = new_target_location.y;
+  new_tar_mov_locs[4].x = new_target_location.x;
+  new_tar_mov_locs[4].y = new_target_location.y;
   new_puzzle.setMyMovables(new_mov_objects);
-    new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
+  new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
   new_puzzle.setRequiredItemID(2);
   new_puzzle.setPowerRequired(true);
   new_room.setMyPuzzle(new_puzzle);
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x   *(new_grid_size_y / 2)+ new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, OBSERVATION, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x *(new_grid_size_y / 2) )].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2))].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, SERVERS, 0, false);
   new_room.setMyExits(new_exits);
@@ -4066,11 +4113,11 @@ void MyGame::setupRoomEighteen()
 }
 
 /**
-*   @brief   Setup Room Nineteen
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Nineteen
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomNineteen()
 {
   Room new_room;
@@ -4089,39 +4136,48 @@ void MyGame::setupRoomNineteen()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i % new_grid_size_x ==  0 || (i % new_grid_size_x ==  3  && i < new_grid_size_x * 5)||
-    (i % new_grid_size_x == 3  && i > new_grid_size_x * 6)|| (i % new_grid_size_x ==  6  && i
-            < new_grid_size_x * 5)|| (i % new_grid_size_x == 6  && i > new_grid_size_x * 6)||
-            (i % new_grid_size_x ==  9  && i < new_grid_size_x * 5)|| (i % new_grid_size_x == 9
-            && i > new_grid_size_x * 6))
+    if (i % new_grid_size_x == 0 || (i % new_grid_size_x == 3 && i < new_grid_size_x * 5) ||
+        (i % new_grid_size_x == 3 && i > new_grid_size_x * 6) ||
+        (i % new_grid_size_x == 6 && i < new_grid_size_x * 5) ||
+        (i % new_grid_size_x == 6 && i > new_grid_size_x * 6) ||
+        (i % new_grid_size_x == 9 && i < new_grid_size_x * 5) ||
+        (i % new_grid_size_x == 9 && i > new_grid_size_x * 6))
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SERVER_LEFT, new_location);
     }
-    else if((i % new_grid_size_x ==  2  && i < new_grid_size_x * 5) || (i % new_grid_size_x ==  2  &&
-    i > new_grid_size_x * 6)|| (i % new_grid_size_x ==  5  && i < new_grid_size_x * 5)|| (i %
-    new_grid_size_x == 5  && i > new_grid_size_x * 6)|| (i % new_grid_size_x ==  8  && i <
-    new_grid_size_x * 5)|| (i % new_grid_size_x ==  8  && i > new_grid_size_x * 6)|| (i %
-    new_grid_size_x ==  11  && i < new_grid_size_x * 5)|| (i % new_grid_size_x ==  11  && i >
-    new_grid_size_x * 6))
+    else if ((i % new_grid_size_x == 2 && i < new_grid_size_x * 5) ||
+             (i % new_grid_size_x == 2 && i > new_grid_size_x * 6) ||
+             (i % new_grid_size_x == 5 && i < new_grid_size_x * 5) ||
+             (i % new_grid_size_x == 5 && i > new_grid_size_x * 6) ||
+             (i % new_grid_size_x == 8 && i < new_grid_size_x * 5) ||
+             (i % new_grid_size_x == 8 && i > new_grid_size_x * 6) ||
+             (i % new_grid_size_x == 11 && i < new_grid_size_x * 5) ||
+             (i % new_grid_size_x == 11 && i > new_grid_size_x * 6))
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SERVER_RIGHT, new_location);
     }
-    else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4142,8 +4198,9 @@ void MyGame::setupRoomNineteen()
 
   new_room.setNumberExits(1);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x *(new_grid_size_y / 2)+ new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, TESTING, 1, false);
   new_room.setMyExits(new_exits);
@@ -4151,11 +4208,11 @@ void MyGame::setupRoomNineteen()
 }
 
 /**
-*   @brief   Setup Room Twenty
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room Twenty
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwenty()
 {
   Room new_room;
@@ -4174,12 +4231,12 @@ void MyGame::setupRoomTwenty()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5-
-          (GRID_SIZE* (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
     if (i == 0 || i == new_grid_size_x * 3 || i == new_grid_size_x * 6)
     {
@@ -4195,32 +4252,30 @@ void MyGame::setupRoomTwenty()
       new_location.y = top_side;
       new_foreground[i] = GameObject(REACTOR_TOP_RIGHT, new_location);
     }
-    else if (i ==  new_grid_size_x || i ==  new_grid_size_x * 4 ||
-             i ==  new_grid_size_x * 7)
+    else if (i == new_grid_size_x || i == new_grid_size_x * 4 || i == new_grid_size_x * 7)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(REACTOR_MIDDLE_LEFT, new_location);
     }
-    else if (i ==  new_grid_size_x + 1 || i ==  new_grid_size_x * 4 + 1 ||
-             i ==  new_grid_size_x * 7 + 1)
+    else if (i == new_grid_size_x + 1 || i == new_grid_size_x * 4 + 1 ||
+             i == new_grid_size_x * 7 + 1)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(REACTOR_MIDDLE_RIGHT, new_location);
     }
-    else if (i ==  new_grid_size_x * 2 || i ==  new_grid_size_x * 5 ||
-             i ==  new_grid_size_x * 8)
+    else if (i == new_grid_size_x * 2 || i == new_grid_size_x * 5 || i == new_grid_size_x * 8)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(REACTOR_BOTTOM_LEFT, new_location);
     }
-    else if (i ==  new_grid_size_x * 2 + 1 || i ==  new_grid_size_x * 5 + 1 ||
-             i ==  new_grid_size_x * 8 + 1)
+    else if (i == new_grid_size_x * 2 + 1 || i == new_grid_size_x * 5 + 1 ||
+             i == new_grid_size_x * 8 + 1)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -4232,10 +4287,10 @@ void MyGame::setupRoomTwenty()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4254,22 +4309,26 @@ void MyGame::setupRoomTwenty()
   bool* new_tar_sw_states = nullptr;
   new_puzzle.setNumberSwitches(5);
   new_switches = new Switch[new_puzzle.getNumberSwitches()];
-    new_tar_sw_states = new bool[new_puzzle.getNumberSwitches()];
+  new_tar_sw_states = new bool[new_puzzle.getNumberSwitches()];
   Point2D new_location = new_room.getMyBackground()[2].getMyLocation();
   new_switches[0] = Switch(GameObject(0, new_location), GameObject(0, new_location), false);
-    new_tar_sw_states[0] = true;
-  new_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 7) + 2].getMyLocation();
+  new_tar_sw_states[0] = true;
+  new_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 7) + 2].getMyLocation();
   new_switches[1] = Switch(GameObject(0, new_location), GameObject(0, new_location), true);
-    new_tar_sw_states[1] = false;
-  new_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 5) + 2].getMyLocation();
+  new_tar_sw_states[1] = false;
+  new_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 5) + 2].getMyLocation();
   new_switches[2] = Switch(GameObject(0, new_location), GameObject(0, new_location), true);
-    new_tar_sw_states[2] = true;
-  new_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 3) + 2].getMyLocation();
+  new_tar_sw_states[2] = true;
+  new_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 3) + 2].getMyLocation();
   new_switches[3] = Switch(GameObject(0, new_location), GameObject(0, new_location), false);
-    new_tar_sw_states[3] = false;
-  new_location = new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 1) + 2].getMyLocation();
+  new_tar_sw_states[3] = false;
+  new_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y - 1) + 2].getMyLocation();
   new_switches[4] = Switch(GameObject(0, new_location), GameObject(0, new_location), false);
-    new_tar_sw_states[4] = true;
+  new_tar_sw_states[4] = true;
   new_puzzle.setMySwitches(new_switches);
   new_puzzle.setTargetSwitchStates(new_tar_sw_states);
 
@@ -4280,7 +4339,7 @@ void MyGame::setupRoomTwenty()
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
   std::string new_solved_mssge = "You have restored power to the "
-                                          "facility.";
+                                 "facility.";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(4);
@@ -4292,8 +4351,9 @@ void MyGame::setupRoomTwenty()
 
   new_room.setNumberExits(1);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x   *(new_grid_size_y / 2)+
-                                                         new_grid_size_x - 1)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(1, new_exit_location), 0, WORKSHOP, 0, false);
   new_room.setMyExits(new_exits);
@@ -4301,11 +4361,11 @@ void MyGame::setupRoomTwenty()
 }
 
 /**
-*   @brief   Setup Room TwentyOne
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room TwentyOne
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwentyOne()
 {
   Room new_room;
@@ -4324,43 +4384,42 @@ void MyGame::setupRoomTwentyOne()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i ==  new_grid_size_x * 2 + 7 || i ==  new_grid_size_x * 2 + 2 )
+    if (i == new_grid_size_x * 2 + 7 || i == new_grid_size_x * 2 + 2)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_TOP, new_location);
     }
-    else if (i ==  new_grid_size_x * 3 + 7 || i ==  new_grid_size_x * 3 + 2)
+    else if (i == new_grid_size_x * 3 + 7 || i == new_grid_size_x * 3 + 2)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(TABLE_BOTTOM, new_location);
     }
-    else if (i ==  new_grid_size_x  + 2  || i ==  new_grid_size_x * 4 + 4)
+    else if (i == new_grid_size_x + 2 || i == new_grid_size_x * 4 + 4)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_LEFT, new_location);
     }
-    else if (i ==  new_grid_size_x  + 3 || i ==  new_grid_size_x * 4 + 5)
+    else if (i == new_grid_size_x + 3 || i == new_grid_size_x * 4 + 5)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_RIGHT, new_location);
     }
-    else if (i ==  new_grid_size_x  + 7 || i ==  new_grid_size_x + 5 ||
-             i ==  new_grid_size_x * 3 + 5)
+    else if (i == new_grid_size_x + 7 || i == new_grid_size_x + 5 || i == new_grid_size_x * 3 + 5)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -4372,10 +4431,10 @@ void MyGame::setupRoomTwentyOne()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4383,17 +4442,17 @@ void MyGame::setupRoomTwentyOne()
 
   new_room.setNumberClues(1);
   new_clues = new Clue[new_room.getNumberClues()];
-  GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 12];
+  GameObject new_gameobject = new_room.getMyBackground()[new_grid_size_x + 12];
   new_gameobject.setMySpriteId(1);
   new_clues[0] = Clue(new_gameobject, 10);
   new_room.setMyClues(new_clues);
 
   new_room.setNumberItems(3);
   new_items = new Item[new_room.getNumberItems()];
-  new_gameobject = new_room.getMyBackground()[new_grid_size_x* 3 + 7 ];
+  new_gameobject = new_room.getMyBackground()[new_grid_size_x * 3 + 7];
   Point2D new_location = new_gameobject.getMyLocation();
   new_items[0] = Item(GameObject(HAMMER, new_location), 8);
-  new_gameobject = new_room.getMyBackground()[new_grid_size_x  + 3];
+  new_gameobject = new_room.getMyBackground()[new_grid_size_x + 3];
   new_location = new_gameobject.getMyLocation();
   new_items[1] = Item(GameObject(PLIERS, new_location), 9);
   new_gameobject = new_room.getMyBackground()[new_grid_size_x * 3 + 5];
@@ -4409,24 +4468,24 @@ void MyGame::setupRoomTwentyOne()
 
   GameObject* new_mov_objects = nullptr;
   new_puzzle.setNumberMovables(2);
-    new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
+  new_mov_objects = new GameObject[new_puzzle.getNumberMovables()];
   Point2D* new_tar_mov_locs = nullptr;
   new_tar_mov_locs = new Point2D[new_puzzle.getNumberMovables()];
   new_location = new_room.getMyBackground()[7].getMyLocation();
   Point2D new_target_location = new_room.getMyBackground()[25].getMyLocation();
-    new_mov_objects[0] = GameObject(0, new_location);
+  new_mov_objects[0] = GameObject(0, new_location);
   new_tar_mov_locs[0].x = new_target_location.x;
   new_tar_mov_locs[0].y = new_target_location.y;
   new_location = new_room.getMyBackground()[47].getMyLocation();
   new_target_location = new_room.getMyBackground()[27].getMyLocation();
-    new_mov_objects[1] = GameObject(0, new_location);
+  new_mov_objects[1] = GameObject(0, new_location);
   new_tar_mov_locs[1].x = new_target_location.x;
   new_tar_mov_locs[1].y = new_target_location.y;
   new_puzzle.setMyMovables(new_mov_objects);
   new_puzzle.setTargetMovableLocations(new_tar_mov_locs);
 
   std::string new_solved_mssge = "You use the key to unlock "
-                                          "the door.";
+                                 "the door.";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(7);
@@ -4437,13 +4496,13 @@ void MyGame::setupRoomTwentyOne()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x
-                                                         *(new_grid_size_y / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, REACTOR, 0, true);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x
-                                                 *(new_grid_size_y / 2)+ new_grid_size_x - 1)]
-          .getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 1, INFIRMARY, 0, false);
   new_room.setMyExits(new_exits);
@@ -4451,11 +4510,11 @@ void MyGame::setupRoomTwentyOne()
 }
 
 /**
-*   @brief   Setup Room TwentyTwo
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room TwentyTwo
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwentyTwo()
 {
   Room new_room;
@@ -4474,32 +4533,35 @@ void MyGame::setupRoomTwentyTwo()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i == 1|| i == 4 || i == 7 || i == 10 || i == new_grid_size_x  * 7 + 1 || i == new_grid_size_x * 7
-    + 4 || i == new_grid_size_x  * 7 + 7 || i == new_grid_size_x * 7  + 10 )
+    if (i == 1 || i == 4 || i == 7 || i == 10 || i == new_grid_size_x * 7 + 1 ||
+        i == new_grid_size_x * 7 + 4 || i == new_grid_size_x * 7 + 7 ||
+        i == new_grid_size_x * 7 + 10)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(BED_TOP, new_location);
     }
-    else if (i == new_grid_size_x + 1|| i == new_grid_size_x + 4|| i == new_grid_size_x + 7 || i ==
-    new_grid_size_x + 10 || i == new_grid_size_x  * 8 + 1 || i == new_grid_size_x * 8  + 4 || i ==
-    new_grid_size_x  * 8 + 7 || i == new_grid_size_x * 8  + 10 )
+    else if (i == new_grid_size_x + 1 || i == new_grid_size_x + 4 || i == new_grid_size_x + 7 ||
+             i == new_grid_size_x + 10 || i == new_grid_size_x * 8 + 1 ||
+             i == new_grid_size_x * 8 + 4 || i == new_grid_size_x * 8 + 7 ||
+             i == new_grid_size_x * 8 + 10)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(BED_BOTTOM, new_location);
     }
-    else if (i == 2|| i == 5 || i == 8 || i == 11 || i == new_grid_size_x * 8 + 2 || i ==
-    new_grid_size_x * 8  + 5 || i == new_grid_size_x * 8  + 8 || i == new_grid_size_x * 8  + 11 )
+    else if (i == 2 || i == 5 || i == 8 || i == 11 || i == new_grid_size_x * 8 + 2 ||
+             i == new_grid_size_x * 8 + 5 || i == new_grid_size_x * 8 + 8 ||
+             i == new_grid_size_x * 8 + 11)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -4511,13 +4573,12 @@ void MyGame::setupRoomTwentyTwo()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
-
   }
   new_room.setMyForeground(new_foreground);
 
@@ -4531,12 +4592,13 @@ void MyGame::setupRoomTwentyTwo()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x
-                                                         *(new_grid_size_y / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, WORKSHOP, 1, false);
-  new_exit_location = new_room.getMyBackground()[
-          (new_grid_size_x *(new_grid_size_y / 2)+ new_grid_size_x - 1)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(1, new_exit_location), 1, LEAD_TECH_OFFICE, 1, false);
   new_room.setMyExits(new_exits);
@@ -4544,11 +4606,11 @@ void MyGame::setupRoomTwentyTwo()
 }
 
 /**
-*   @brief   Setup Room TwentyThree
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room TwentyThree
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwentyThree()
 {
   Room new_room;
@@ -4567,36 +4629,50 @@ void MyGame::setupRoomTwentyThree()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i ==  10 )    {
+    if (i == 10)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_LEFT, new_location);
-    }    else if (i ==  11 )    {
+    }
+    else if (i == 11)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_RIGHT, new_location);
-    }    else if (i ==  23 )    {
+    }
+    else if (i == 23)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_CHAIR_BOTTOM, new_location);
-    }    else if (i ==  0 )    {
+    }
+    else if (i == 0)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SAFE, new_location);
-    }    else { new_foreground[i].setMySpriteId(-1); }
-    left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    }
+    else
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE* (static_cast<float>(new_grid_size_x)* 0.5f)));
+      new_foreground[i].setMySpriteId(-1);
+    }
+    left_side += GRID_SIZE;
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4624,11 +4700,13 @@ void MyGame::setupRoomTwentyThree()
   Point2D new_exit_location = new_room.getMyBackground()[(new_grid_size_x / 2)].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, CORRIDOR, 5, false);
-  new_exit_location = new_room.getMyBackground()[new_grid_size_x   *(new_grid_size_y / 2)].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(3, new_exit_location), 1, INFIRMARY, 1, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x   *(new_grid_size_y / 2)+ new_grid_size_x - 1)]
-          .getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * (new_grid_size_y / 2) + new_grid_size_x - 1)]
+      .getMyLocation();
   new_exit_location.x += (GRID_SIZE / 2);
   new_exits[2] = Exit(GameObject(1, new_exit_location), 2, SECURITY, 0, false);
   new_room.setMyExits(new_exits);
@@ -4636,11 +4714,11 @@ void MyGame::setupRoomTwentyThree()
 }
 
 /**
-*   @brief   Setup Room TwentyFour
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room TwentyFour
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwentyFour()
 {
   Room new_room;
@@ -4659,35 +4737,35 @@ void MyGame::setupRoomTwentyFour()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i ==  24 )
+    if (i == 24)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_LEFT, new_location);
     }
-    else if (i ==  25 )
+    else if (i == 25)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_RIGHT, new_location);
     }
-    else if (i ==  34 )
+    else if (i == 34)
     {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_CHAIR_BOTTOM, new_location);
     }
-    else if (i >=  0 && i < new_grid_size_x)
+    else if (i >= 0 && i < new_grid_size_x)
     {
       Point2D new_location;
       new_location.x = left_side;
@@ -4699,10 +4777,10 @@ void MyGame::setupRoomTwentyFour()
       new_foreground[i].setMySpriteId(-1);
     }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1)
+    if (i % new_grid_size_x == new_grid_size_x - 1)
     {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4725,12 +4803,13 @@ void MyGame::setupRoomTwentyFour()
 
   new_room.setNumberExits(2);
   new_exits = new Exit[new_room.getNumberExits()];
-  Point2D new_exit_location = new_room.getMyBackground()[
-          new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
+  Point2D new_exit_location =
+    new_room.getMyBackground()[new_grid_size_x * (new_grid_size_y / 2)].getMyLocation();
   new_exit_location.x -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(3, new_exit_location), 0, LEAD_TECH_OFFICE, 2, false);
-  new_exit_location = new_room.getMyBackground()[(
-          new_grid_size_x   * new_grid_size_y - (new_grid_size_x/ 2))].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y - (new_grid_size_x / 2))]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(2, new_exit_location), 1, RECEPTION, 0, false);
   new_room.setMyExits(new_exits);
@@ -4738,11 +4817,11 @@ void MyGame::setupRoomTwentyFour()
 }
 
 /**
-*   @brief   Setup Room TwentyFive
-*   @details This is a temporary function is used to setup a room.
-*   @param   none
-*   @return  void
-*/
+ *   @brief   Setup Room TwentyFive
+ *   @details This is a temporary function is used to setup a room.
+ *   @param   none
+ *   @return  void
+ */
 void MyGame::setupRoomTwentyFive()
 {
   Room new_room;
@@ -4761,53 +4840,71 @@ void MyGame::setupRoomTwentyFive()
   new_room.setupFloorStandard();
   new_room.setupWalls();
 
-  new_foreground = new GameObject[(new_grid_size_x*new_grid_size_y)];
-  auto left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_x)*0.5f)));
-  auto top_side = static_cast<float>(GAME_HEIGHT*0.5- (GRID_SIZE*
-          (static_cast<float>(new_grid_size_y)*0.5f)));
-  for (int i = 0; i < (new_grid_size_x*new_grid_size_y); i++)
+  new_foreground = new GameObject[(new_grid_size_x * new_grid_size_y)];
+  auto left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                      (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
+  auto top_side = static_cast<float>(GAME_HEIGHT * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_y) * 0.5f)));
+  for (int i = 0; i < (new_grid_size_x * new_grid_size_y); i++)
   {
-    if (i ==  23 || i ==  25)    {
+    if (i == 23 || i == 25)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_LEFT, new_location);
-    }else if (i ==  24 || i ==  26) {
+    }
+    else if (i == 24 || i == 26)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(DESK_RIGHT, new_location);
-    } else if (i ==  13) {
+    }
+    else if (i == 13)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(CHAIR_TOP, new_location);
-    } else if (i ==  0 || i == 20|| i == 40|| i == 60) {
+    }
+    else if (i == 0 || i == 20 || i == 40 || i == 60)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_LEFT_TOP, new_location);
-    } else if (i ==  10 || i == 30|| i == 50|| i == 70) {
+    }
+    else if (i == 10 || i == 30 || i == 50 || i == 70)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_LEFT_BOTTOM, new_location);
-    } else if (i ==  9 || i == 29|| i == 49|| i == 69) {
+    }
+    else if (i == 9 || i == 29 || i == 49 || i == 69)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_RIGHT_TOP, new_location);
-    } else if (i ==  19 || i == 39|| i == 59|| i == 79) {
+    }
+    else if (i == 19 || i == 39 || i == 59 || i == 79)
+    {
       Point2D new_location;
       new_location.x = left_side;
       new_location.y = top_side;
       new_foreground[i] = GameObject(SOFA_RIGHT_BOTTOM, new_location);
-    } else { new_foreground[i].setMySpriteId(-1); }
+    }
+    else
+    {
+      new_foreground[i].setMySpriteId(-1);
+    }
     left_side += GRID_SIZE;
-    if (i%new_grid_size_x == new_grid_size_x-1) {
-      left_side = static_cast<float>(GAME_WIDTH*0.5- (GRID_SIZE*
-              (static_cast<float>(new_grid_size_x)* 0.5f)));
+    if (i % new_grid_size_x == new_grid_size_x - 1)
+    {
+      left_side = static_cast<float>(GAME_WIDTH * 0.5 -
+                                     (GRID_SIZE * (static_cast<float>(new_grid_size_x) * 0.5f)));
       top_side += GRID_SIZE;
     }
   }
@@ -4826,7 +4923,7 @@ void MyGame::setupRoomTwentyFive()
   new_puzzle.setLinkedExits(new_linked_exits);
 
   std::string new_solved_mssge = "You use the blue keycard to unlock "
-                                          "the door.";
+                                 "the door.";
   new_puzzle.setPuzzleSolvedMessage(new_solved_mssge);
 
   new_puzzle.setPuzzleID(8);
@@ -4838,12 +4935,11 @@ void MyGame::setupRoomTwentyFive()
   Point2D new_exit_location = new_room.getMyBackground()[new_grid_size_x / 2].getMyLocation();
   new_exit_location.y -= (GRID_SIZE / 2);
   new_exits[0] = Exit(GameObject(0, new_exit_location), 0, SECURITY, 1, false);
-  new_exit_location = new_room.getMyBackground()[(new_grid_size_x   * new_grid_size_y -
-                                                 (new_grid_size_x/ 2))].getMyLocation();
+  new_exit_location =
+    new_room.getMyBackground()[(new_grid_size_x * new_grid_size_y - (new_grid_size_x / 2))]
+      .getMyLocation();
   new_exit_location.y += (GRID_SIZE / 2);
   new_exits[1] = Exit(GameObject(2, new_exit_location), 1, EXIT, 2, true);
   new_room.setMyExits(new_exits);
   visited_rooms[RECEPTION] = new_room;
 }
-
-

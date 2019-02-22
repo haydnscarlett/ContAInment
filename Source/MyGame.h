@@ -19,14 +19,14 @@ class MyGame : public ASGE::OGLGame
   ~MyGame() override = default;
 
   bool init() override;
-
   void update(const ASGE::GameTime& game_time) override;
-
   void render(const ASGE::GameTime& game_time) override;
 
  private:
   void setupGameSprites();
   void setupGameSound();
+
+  //@team
   void setupRoomOne();
   void setupRoomTwo();
   void setupRoomThree();
@@ -141,8 +141,6 @@ class MyGame : public ASGE::OGLGame
   SoLoud::Wav lever;
   SoLoud::Wav background_music_1;
   SoLoud::Wav intro_sfx;
-
-
 
   bool play_step;
 };

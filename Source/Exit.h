@@ -4,14 +4,17 @@
 
 #include "GameObject.h"
 #ifndef EXMACHINA_EXIT_H
-#define EXMACHINA_EXIT_H
+#  define EXMACHINA_EXIT_H
 
 class Exit
 {
  public:
   Exit();
-  Exit(GameObject new_gameobject, int new_exit_id, int new_cnnctd_room_id,
-       int new_cnnct_exit_id, bool new_locked);
+  Exit(GameObject new_gameobject,
+       int new_exit_id,
+       int new_cnnctd_room_id,
+       int new_cnnct_exit_id,
+       bool new_locked);
   GameObject getMyExitGameobject();
   void setMyExitGameobject(GameObject new_exit_gameobject);
   int getExitID();
@@ -19,13 +22,13 @@ class Exit
   int getConnectedExitID();
   bool isLocked();
   void setLocked(bool new_locked);
+
  private:
   GameObject my_exit_gameobject;
   int exit_id;
   int connected_room_id;
   int connected_exit_id;
   bool locked;
-
 };
 
-#endif //EXMACHINA_EXIT_H
+#endif // EXMACHINA_EXIT_H

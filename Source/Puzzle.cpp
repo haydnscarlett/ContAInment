@@ -6,170 +6,170 @@
 #include "Constants.h"
 
 /**
-*   @brief   Set Puzzle ID
-*   @details This function sets the puzzle's ID
-*   @param   new_id The Puzzle id
-*   @return  void
-*/
+ *   @brief   Set Puzzle ID
+ *   @details This function sets the puzzle's ID
+ *   @param   new_id The Puzzle id
+ *   @return  void
+ */
 void Puzzle::setPuzzleID(int new_id)
 {
   puzzle_id = new_id;
 }
 
 /**
-*   @brief   Get Linked Exits
-*   @details This function returns the Linked Exits array
-*   @return  int*
-*/
+ *   @brief   Get Linked Exits
+ *   @details This function returns the Linked Exits array
+ *   @return  int*
+ */
 int* Puzzle::getLinkedExits()
 {
   return linked_exits;
 }
 
 /**
-*   @brief   Set Linked Exits
-*   @details This function sets the puzzle's Linked Exits arrray
-*   @param   new_exits The array of linked exit ID's
-*   @return  void
-*/
+ *   @brief   Set Linked Exits
+ *   @details This function sets the puzzle's Linked Exits arrray
+ *   @param   new_exits The array of linked exit ID's
+ *   @return  void
+ */
 void Puzzle::setLinkedExits(int* new_exits)
 {
   linked_exits = new_exits;
 }
 
 /**
-*   @brief   Get My Movables
-*   @details This function returns the Movable Objects array
-*   @return  GameObject*
-*/
+ *   @brief   Get My Movables
+ *   @details This function returns the Movable Objects array
+ *   @return  GameObject*
+ */
 GameObject* Puzzle::getMyMovables()
 {
   return my_movables;
 }
 
 /**
-*   @brief   Set My Movables
-*   @details This function sets the puzzle's movable gameobjects array
-*   @param   new_movables The array of movable gameobjects
-*   @return  void
-*/
+ *   @brief   Set My Movables
+ *   @details This function sets the puzzle's movable gameobjects array
+ *   @param   new_movables The array of movable gameobjects
+ *   @return  void
+ */
 void Puzzle::setMyMovables(GameObject* new_movables)
 {
   my_movables = new_movables;
 }
 
 /**
-*   @brief   Get My Switches
-*   @details This function returns the Switch Objects array
-*   @return  GameObject*
-*/
+ *   @brief   Get My Switches
+ *   @details This function returns the Switch Objects array
+ *   @return  GameObject*
+ */
 Switch* Puzzle::getMySwitches()
 {
   return my_switches;
 }
 
 /**
-*   @brief   Set My Switches
-*   @details This function sets the puzzle's Switches array
-*   @param   new_switches The array of Switches
-*   @return  void
-*/
+ *   @brief   Set My Switches
+ *   @details This function sets the puzzle's Switches array
+ *   @param   new_switches The array of Switches
+ *   @return  void
+ */
 void Puzzle::setMySwitches(Switch* new_switches)
 {
   my_switches = new_switches;
 }
 
 /**
-*   @brief   Get Number Linked Exits
-*   @details This function returns the Number of Linked Exits
-*   @return  int
-*/
+ *   @brief   Get Number Linked Exits
+ *   @details This function returns the Number of Linked Exits
+ *   @return  int
+ */
 int Puzzle::getNumberLinkedExits() const
 {
   return number_linked_exits;
 }
 
 /**
-*   @brief   Set Number Linked Exits
-*   @details This function sets the puzzle's Number of Linked Exits
-*   @param   new_number_linked_exits The number of linked exits
-*   @return  void
-*/
+ *   @brief   Set Number Linked Exits
+ *   @details This function sets the puzzle's Number of Linked Exits
+ *   @param   new_number_linked_exits The number of linked exits
+ *   @return  void
+ */
 void Puzzle::setNumberLinkedExits(int new_num_lnkd_exts)
 {
   number_linked_exits = new_num_lnkd_exts;
 }
 
 /**
-*   @brief   Get Number Movables
-*   @details This function returns the Number of Movables
-*   @return  int
-*/
+ *   @brief   Get Number Movables
+ *   @details This function returns the Number of Movables
+ *   @return  int
+ */
 int Puzzle::getNumberMovables() const
 {
   return number_movables;
 }
 
 /**
-*   @brief   Set Number Movables
-*   @details This function sets the puzzle's Number of Movables objects
-*   @param   new_number_movables The number of Movables objects
-*   @return  void
-*/
+ *   @brief   Set Number Movables
+ *   @details This function sets the puzzle's Number of Movables objects
+ *   @param   new_number_movables The number of Movables objects
+ *   @return  void
+ */
 void Puzzle::setNumberMovables(int new_number_movables)
 {
   number_movables = new_number_movables;
 }
 
 /**
-*   @brief   Get Number Switches
-*   @details This function returns the Number of Switches
-*   @return  int
-*/
+ *   @brief   Get Number Switches
+ *   @details This function returns the Number of Switches
+ *   @return  int
+ */
 int Puzzle::getNumberSwitches() const
 {
   return number_switches;
 }
 
 /**
-*   @brief   Set Number Switches
-*   @details This function sets the puzzle's Number of Switch objects
-*   @param   new_number_switches The number of Switch objects
-*   @return  void
-*/
+ *   @brief   Set Number Switches
+ *   @details This function sets the puzzle's Number of Switch objects
+ *   @param   new_number_switches The number of Switch objects
+ *   @return  void
+ */
 void Puzzle::setNumberSwitches(int new_number_switches)
 {
   number_switches = new_number_switches;
 }
 
 /**
-*   @brief   Set Required Item ID
-*   @details This function sets the puzzle's Required Item ID
-*   @param   new_required_item_id The Item id
-*   @return  void
-*/
+ *   @brief   Set Required Item ID
+ *   @details This function sets the puzzle's Required Item ID
+ *   @param   new_required_item_id The Item id
+ *   @return  void
+ */
 void Puzzle::setRequiredItemID(int new_required_item_id)
 {
   required_item_id = new_required_item_id;
 }
 
 /**
-*   @brief   Set Required Clue ID
-*   @details This function sets the puzzle's Required Clue ID
-*   @param   new_required_clue_id The Clue id
-*   @return  void
-*/
+ *   @brief   Set Required Clue ID
+ *   @details This function sets the puzzle's Required Clue ID
+ *   @param   new_required_clue_id The Clue id
+ *   @return  void
+ */
 void Puzzle::setRequiredClueID(int new_required_clue_id)
 {
   required_clue_id = new_required_clue_id;
 }
 
 /**
-*   @brief   Check Puzzle Completed
-*   @details This function returns checks if the puzzle is complete and
-*           updates the player and facility power bool accordingly
-*   @return  bool
-*/
+ *   @brief   Check Puzzle Completed
+ *   @details This function returns checks if the puzzle is complete and
+ *           updates the player and facility power bool accordingly
+ *   @return  bool
+ */
 bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
 {
   bool puzzle_completed = false;
@@ -187,7 +187,7 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
     switches_completed = true;
     for (int i = 0; i < number_switches; i++)
     {
-      if(target_switch_states[i] != my_switches[i].isOn())
+      if (target_switch_states[i] != my_switches[i].isOn())
       {
         switches_completed = false;
       }
@@ -202,14 +202,10 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
     movables_completed = true;
     for (int i = 0; i < number_movables; i++)
     {
-      if(!(my_movables[i].getMyLocation().x > (targ_movable_locs[i].x -
-      MOVABLE_DISTANCE_CHECK)
-          && my_movables[i].getMyLocation().x < (targ_movable_locs[i].x +
-          MOVABLE_DISTANCE_CHECK)
-          && (my_movables[i].getMyLocation().y > (targ_movable_locs[i].y -
-          MOVABLE_DISTANCE_CHECK)
-          && my_movables[i].getMyLocation().y < (targ_movable_locs[i].y +
-          MOVABLE_DISTANCE_CHECK))))
+      if (!(my_movables[i].getMyLocation().x > (targ_movable_locs[i].x - MOVABLE_DISTANCE_CHECK) &&
+            my_movables[i].getMyLocation().x < (targ_movable_locs[i].x + MOVABLE_DISTANCE_CHECK) &&
+            (my_movables[i].getMyLocation().y > (targ_movable_locs[i].y - MOVABLE_DISTANCE_CHECK) &&
+             my_movables[i].getMyLocation().y < (targ_movable_locs[i].y + MOVABLE_DISTANCE_CHECK))))
       {
         movables_completed = false;
       }
@@ -223,7 +219,7 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
   {
     for (int i = 0; i < 15; i++)
     {
-      if(player->getInventory(i).getItemID() == required_item_id)
+      if (player->getInventory(i).getItemID() == required_item_id)
       {
         has_required_item = true;
       }
@@ -237,14 +233,14 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
   {
     for (int i = 0; i < player->getNumberCluesFound(); i++)
     {
-      if(player->getCluesFound()[i] == required_clue_id)
+      if (player->getCluesFound()[i] == required_clue_id)
       {
         has_required_clue = true;
       }
     }
   }
-  if(switches_completed && movables_completed && has_required_item &&
-      has_required_clue &&((power_required && *power_on) || !power_required))
+  if (switches_completed && movables_completed && has_required_item && has_required_clue &&
+      ((power_required && *power_on) || !power_required))
   {
     puzzle_completed = true;
   }
@@ -252,64 +248,64 @@ bool Puzzle::checkPuzzleCompleted(Player* player, bool* power_on)
 }
 
 /**
-*   @brief   Get Target Movable Locations
-*   @details This function returns the Target Movable Locations array
-*   @return  Point2D*
-*/
+ *   @brief   Get Target Movable Locations
+ *   @details This function returns the Target Movable Locations array
+ *   @return  Point2D*
+ */
 Point2D* Puzzle::getTargetMovableLocations() const
 {
   return targ_movable_locs;
 }
 
 /**
-*   @brief   Set Target Movable Locations
-*   @details This function sets the puzzle's Target Movable Locations array
-*   @param   new_target_movable_locations The Target Movable Locations array
-*   @return  void
-*/
+ *   @brief   Set Target Movable Locations
+ *   @details This function sets the puzzle's Target Movable Locations array
+ *   @param   new_target_movable_locations The Target Movable Locations array
+ *   @return  void
+ */
 void Puzzle::setTargetMovableLocations(Point2D* new_tar_mov_locs)
 {
   targ_movable_locs = new_tar_mov_locs;
 }
 
 /**
-*   @brief   Set Target Switch States
-*   @details This function sets the puzzle's Target Switch States array
-*   @param   new_target_switch_states The Target Switch States array
-*   @return  void
-*/
+ *   @brief   Set Target Switch States
+ *   @details This function sets the puzzle's Target Switch States array
+ *   @param   new_target_switch_states The Target Switch States array
+ *   @return  void
+ */
 void Puzzle::setTargetSwitchStates(bool* new_tar_sw_state)
 {
   target_switch_states = new_tar_sw_state;
 }
 
 /**
-*   @brief   Get Puzzle Solved Message
-*   @details This function returns the Puzzle Solved Message text
-*   @return  std::string
-*/
+ *   @brief   Get Puzzle Solved Message
+ *   @details This function returns the Puzzle Solved Message text
+ *   @return  std::string
+ */
 std::string Puzzle::getPuzzleSolvedMessage()
 {
   return solved_message;
 }
 
 /**
-*   @brief   Set Target Switch States
-*   @details This function sets the puzzle's Target Switch States array
-*   @param   new_target_switch_states The Target Switch States array
-*   @return  void
-*/
+ *   @brief   Set Target Switch States
+ *   @details This function sets the puzzle's Target Switch States array
+ *   @param   new_target_switch_states The Target Switch States array
+ *   @return  void
+ */
 void Puzzle::setPuzzleSolvedMessage(std::string new_solved_mssge)
 {
-  solved_message.operator=(new_solved_mssge) ;
+  solved_message.operator=(new_solved_mssge);
 }
 
 /**
-*   @brief   Set Target Switch States
-*   @details This function sets the puzzle's Target Switch States array
-*   @param   new_target_switch_states The Target Switch States array
-*   @return  void
-*/
+ *   @brief   Set Target Switch States
+ *   @details This function sets the puzzle's Target Switch States array
+ *   @param   new_target_switch_states The Target Switch States array
+ *   @return  void
+ */
 void Puzzle::setPowerRequired(bool new_power_required)
 {
   power_required = new_power_required;

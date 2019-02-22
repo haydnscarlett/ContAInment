@@ -3,20 +3,20 @@
 //
 
 #include "GameObject.h"
-#include "Switch.h"
 #include "Player.h"
+#include "Switch.h"
 #ifndef EXMACHINA_PUZZLE_H
-#define EXMACHINA_PUZZLE_H
+#  define EXMACHINA_PUZZLE_H
 
 class Puzzle
 {
  public:
   void setPuzzleID(int new_id);
-  int* getLinkedExits() ;
+  int* getLinkedExits();
   void setLinkedExits(int* new_exits);
-  GameObject* getMyMovables() ;
+  GameObject* getMyMovables();
   void setMyMovables(GameObject* new_movables);
-  Switch* getMySwitches() ;
+  Switch* getMySwitches();
   void setMySwitches(Switch* new_switches);
   int getNumberLinkedExits() const;
   void setNumberLinkedExits(int new_num_lnkd_exts);
@@ -34,6 +34,7 @@ class Puzzle
   void setPuzzleSolvedMessage(std::string new_solved_mssge);
   void setPowerRequired(bool power_required);
   Puzzle();
+
  private:
   int puzzle_id;
   int number_linked_exits;
@@ -50,4 +51,4 @@ class Puzzle
   bool power_required;
 };
 
-#endif //EXMACHINA_PUZZLE_H
+#endif // EXMACHINA_PUZZLE_H

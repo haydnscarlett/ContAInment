@@ -8,7 +8,7 @@
 
 class Clue
 {
-  public:
+ public:
   Clue();
   Clue(GameObject new_gameobject, int new_clue_id);
   GameObject getMyGameObject();
@@ -16,7 +16,7 @@ class Clue
   int getClueID();
   bool addClueToPlayer(int* clues_found, int index);
 
-  private:
+ private:
   GameObject my_gameobject;
   int clue_id;
 };

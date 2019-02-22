@@ -57,18 +57,18 @@ class Room
 
  private:
   GameObject* my_background = nullptr;
-  GameObject* my_foreground= nullptr;
-  GameObject* my_walls= nullptr;
-  Clue* my_clues= nullptr;
-  int number_of_clues= 0;
-  Item* my_items= nullptr;
-  int number_of_items= 0;
+  GameObject* my_foreground = nullptr;
+  GameObject* my_walls = nullptr;
+  Clue* my_clues = nullptr;
+  int number_of_clues = 0;
+  Item* my_items = nullptr;
+  int number_of_items = 0;
   Puzzle my_puzzle;
   int room_id = 0;
-  Exit* my_exits= nullptr;
-  int number_of_exits= 0;
-  int my_gridsize_x= 0;
-  int my_gridsize_y= 0;
+  Exit* my_exits = nullptr;
+  int number_of_exits = 0;
+  int my_gridsize_x = 0;
+  int my_gridsize_y = 0;
 };
 
 #endif // EXMACHINA_ROOM_H

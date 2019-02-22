@@ -45,9 +45,9 @@ endif()
 
 ## unzip the archive
 file(MAKE_DIRECTORY ${PAKDIR})
-execute_process(
-        COMMAND ${CMAKE_COMMAND} -E tar -xf ${PAKDL}
-        WORKING_DIRECTORY ${PAKDIR})
+#execute_process(
+   #     COMMAND ${CMAKE_COMMAND} -E tar -xf ${PAKDL}
+   #     WORKING_DIRECTORY ${PAKDIR})
 
 ## utility scripts
 add_subdirectory(${PAKDIR})
