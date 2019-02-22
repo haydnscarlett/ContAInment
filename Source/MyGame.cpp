@@ -2,6 +2,8 @@
 // Created by Huxy on 03/10/2018.
 //
 
+//@todo sort this mess of a class. It's way too generalised.
+
 #include <iostream>
 
 #include <Engine/DebugPrinter.h>
@@ -626,6 +628,7 @@ void MyGame::setupMovableSprites()
  *   @details This function is used to setup the player sprite array.
  *   @param   none
  *   @return  void
+ *   @todo    move player into a class, with the class having sprites.
  */
 void MyGame::setupPlayerSprites()
 {
@@ -742,6 +745,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
   {
     keyHandlerInGame(key);
   }
+
   else if (game_state == TEXT_DISPLAY &&
            (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE) &&
            key->action == ASGE::KEYS::KEY_PRESSED)
@@ -749,18 +753,22 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
     soloud.play(menu_click);
     game_state = IN_GAME;
   }
+
   else if (game_state == INVENTORY)
   {
     keyHandlerInventory(key);
   }
+
   else if (game_state == PAUSE)
   {
     keyHandlerPauseMenu(key);
   }
+
   else if (game_state == GAME_OVER && key->key == ASGE::KEYS::KEY_ESCAPE)
   {
     signalExit();
   }
+
   else if (game_state == JOURNAL &&
            (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
             key->key == ASGE::KEYS::KEY_J) &&
@@ -769,6 +777,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
     soloud.play(page_close);
     game_state = IN_GAME;
   }
+
   else if (game_state == MAP &&
            (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
             key->key == ASGE::KEYS::KEY_M) &&
@@ -777,6 +786,7 @@ void MyGame::keyHandler(ASGE::SharedEventData data)
     soloud.play(page_close);
     game_state = IN_GAME;
   }
+
   else if (game_state == CONTROLS &&
            (key->key == ASGE::KEYS::KEY_ENTER || key->key == ASGE::KEYS::KEY_SPACE ||
             key->key == ASGE::KEYS::KEY_C) &&

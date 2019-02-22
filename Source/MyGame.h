@@ -26,7 +26,7 @@ class MyGame : public ASGE::OGLGame
   void setupGameSprites();
   void setupGameSound();
 
-  //@team
+  //@todo move all this code into a level, with room classes
   void setupRoomOne();
   void setupRoomTwo();
   void setupRoomThree();
@@ -90,6 +90,7 @@ class MyGame : public ASGE::OGLGame
 
   int key_callback_id = -1; /**< Key Input Callback ID. */
 
+  //@todo huge number of leaks in a single run of 30ses, 269 leaks detected
   ASGE::Sprite* splash_screen = nullptr;
   ASGE::Sprite* main_menu = nullptr;
   ASGE::Sprite* main_menu_icon = nullptr;

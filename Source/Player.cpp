@@ -86,6 +86,8 @@ void Player::addToClues(int new_clue, int index)
 {
   int* tmp;
   tmp = new int[number_clues_found];
+
+  //@todo errr, what? C code copying memory, is this really necessary?
   memcpy(tmp, clues_found, number_clues_found * sizeof(int));
   number_clues_found++;
   clues_found = new int[number_clues_found];
@@ -224,6 +226,7 @@ void Player::savePlayerData()
     tmp = ",";
     data.append(tmp);
   }
+
   for (int i : range)
   {
     if (inventory[i].getMyGameObject().getMySpriteId() >= 0 &&
@@ -237,6 +240,7 @@ void Player::savePlayerData()
     tmp = ",";
     data.append(tmp);
   }
+
   if (number_clues_found >= 0 && number_clues_found < 10)
   {
     tmp = "0";

@@ -36,6 +36,7 @@ class Puzzle
   Puzzle();
 
  private:
+  // todo: reorder so it's easier to read these variables, by type is a good shout
   int puzzle_id;
   int number_linked_exits;
   int* linked_exits;
